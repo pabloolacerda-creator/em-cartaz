@@ -96,6 +96,23 @@ export async function discover(opts: {
   return { movies: data.results.map(mapMovie), totalPages: data.total_pages };
 }
 
+export async function fetchTitleLogo(movieId: number): Promise<string | null> {
+  try {
+    const data = await get<{
+      logos: { file_path: string; iso_639_1: string | null }[];
+    }>(`/movie/${movieId}/images`, { include_image_language: "pt,en,null" });
+    const logos = data.logos ?? [];
+    if (!logos.length) return null;
+    const pick =
+      logos.find((l) => l.iso_639_1 === "pt") ??
+      logos.find((l) => l.iso_639_1 === "en") ??
+      logos[0];
+    return `https://image.tmdb.org/t/p/w500${pick.file_path}`;
+  } catch {
+    return null;
+  }
+}
+
 export type WhereToWatch = { id: number; name: string; logo: string | null };
 
 export async function fetchProvidersFor(movieId: number): Promise<WhereToWatch[]> {

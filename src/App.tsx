@@ -1,34 +1,39 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PROVIDERS,
   discover,
   fetchGenres,
+  fetchTitleLogo,
   type Movie,
   type ProviderId,
 } from "./tmdb";
+import { TopBar } from "./components/TopBar";
 import { Hero } from "./components/Hero";
-import { MovieCard } from "./components/MovieCard";
+import { Row } from "./components/Row";
 import { DetailSheet } from "./components/DetailSheet";
 
-const MIN_VOTES = 200;
-const GENRE_ORDER = [
-  18, 35, 28, 53, 878, 27, 12, 10749, 16, 80, 9648, 14, 10751, 99, 36, 10752, 37, 10402,
+const GENRE_ROWS = [
+  { id: 18, label: "Dramas" },
+  { id: 35, label: "Comédias" },
+  { id: 28, label: "Ação e aventura" },
+  { id: 53, label: "Suspense" },
+  { id: 27, label: "Terror" },
+  { id: 878, label: "Ficção científica" },
+  { id: 10749, label: "Romance" },
+  { id: 16, label: "Animação" },
 ];
 
 export default function App() {
   const [active, setActive] = useState<Set<ProviderId>>(new Set());
-  const [genre, setGenre] = useState<number | null>(null);
   const [genres, setGenres] = useState<Record<number, string>>({});
 
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [hero, setHero] = useState<Movie | null>(null);
+  const [heroLogo, setHeroLogo] = useState<string | null>(null);
+  const [heroLoading, setHeroLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const [selected, setSelected] = useState<Movie | null>(null);
-
+  const [tick, setTick] = useState(0);
   const reqId = useRef(0);
 
   useEffect(() => {
@@ -36,197 +41,99 @@ export default function App() {
   }, []);
 
   const providerList = useMemo(() => [...active] as ProviderId[], [active]);
+  const key = providerList.join(",");
 
-  const load = useCallback(
-    async (nextPage: number, replace: boolean) => {
-      const id = ++reqId.current;
-      replace ? setLoading(true) : setLoadingMore(true);
-      setError(null);
-      try {
-        const { movies: got, totalPages: tp } = await discover({
-          providers: providerList,
-          page: nextPage,
-          minVotes: MIN_VOTES,
-          genre,
-        });
-        if (id !== reqId.current) return; // a newer request superseded this one
-        setTotalPages(tp);
-        setPage(nextPage);
-        setMovies((prev) => {
-          const merged = replace ? got : [...prev, ...got];
-          const seen = new Set<number>();
-          return merged.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)));
-        });
-      } catch {
-        if (id === reqId.current) setError("Não consegui carregar os filmes. Tenta de novo.");
-      } finally {
-        if (id === reqId.current) {
-          setLoading(false);
-          setLoadingMore(false);
-        }
-      }
-    },
-    [providerList, genre]
-  );
-
-  // Reload whenever filters change
   useEffect(() => {
+    const id = ++reqId.current;
+    setHeroLoading(true);
+    setError(false);
+    setHero(null);
+    setHeroLogo(null);
     window.scrollTo({ top: 0 });
-    load(1, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providerList.join(","), genre]);
 
-  const toggleProvider = (id: ProviderId) => {
+    discover({ providers: providerList, page: 1, minVotes: 300 })
+      .then(async (r) => {
+        if (id !== reqId.current) return;
+        const top = r.movies.find((m) => m.backdrop) ?? r.movies[0] ?? null;
+        setHero(top);
+        setHeroLoading(false);
+        if (top) {
+          const logo = await fetchTitleLogo(top.id);
+          if (id === reqId.current) setHeroLogo(logo);
+        }
+      })
+      .catch(() => {
+        if (id === reqId.current) {
+          setError(true);
+          setHeroLoading(false);
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, tick]);
+
+  const toggle = (id: ProviderId) =>
     setActive((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
-  };
 
-  const [hero, ...rest] = movies;
-  const canMore = page < totalPages && page < 20; // TMDB hard-caps discover depth
+  const showProviderRows = active.size === 0;
 
   return (
-    <div className="mx-auto min-h-full max-w-3xl px-4 pb-16">
-      <header className="flex items-baseline justify-between gap-3 pt-6">
-        <h1 className="text-xl font-black tracking-tight text-text">
-          Em&nbsp;Cartaz
-          <span className="ml-2 align-middle text-xs font-semibold text-muted">
-            o ranking dos streamings
-          </span>
-        </h1>
-      </header>
+    <div className="min-h-full pb-16">
+      <TopBar active={active} onTodos={() => setActive(new Set())} onToggle={toggle} />
 
-      {/* Provider rail */}
-      <div className="sticky top-0 z-20 -mx-4 mt-4 bg-base/90 px-4 py-3 backdrop-blur">
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
-          <Chip label="Todos" active={active.size === 0} onClick={() => setActive(new Set())} />
-          {PROVIDERS.map((p) => (
-            <Chip
-              key={p.id}
-              label={p.name}
-              dot={p.color}
-              active={active.has(p.id)}
-              onClick={() => toggleProvider(p.id)}
-            />
-          ))}
-        </div>
-
-        {/* Genre rail */}
-        <div className="no-scrollbar mt-2 flex gap-2 overflow-x-auto">
-          <Chip label="Todos os gêneros" small active={genre === null} onClick={() => setGenre(null)} />
-          {GENRE_ORDER.filter((id) => genres[id]).map((id) => (
-            <Chip
-              key={id}
-              label={genres[id]}
-              small
-              active={genre === id}
-              onClick={() => setGenre((g) => (g === id ? null : id))}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
       {error ? (
-        <div className="mt-10 text-center">
-          <p className="text-muted">{error}</p>
+        <div className="flex min-h-[70vh] flex-col items-center justify-center gap-3 px-6 text-center">
+          <p className="text-muted">Não consegui carregar os filmes agora.</p>
           <button
-            onClick={() => load(1, true)}
-            className="mt-3 rounded-full bg-surface2 px-4 py-2 text-sm font-semibold text-text"
+            onClick={() => setTick((t) => t + 1)}
+            className="rounded bg-surface2 px-4 py-2 text-sm font-semibold text-text"
           >
             Tentar de novo
           </button>
         </div>
-      ) : loading ? (
-        <GridSkeleton />
-      ) : movies.length === 0 ? (
-        <div className="mt-16 text-center text-muted">
-          <p className="text-lg font-semibold text-text">Nada por aqui com esse filtro.</p>
-          <p className="mt-1 text-sm">Tenta soltar o gênero ou escolher outro streaming.</p>
-        </div>
+      ) : heroLoading || !hero ? (
+        <div className="h-[72vh] min-h-[460px] w-full animate-pulse bg-gradient-to-t from-base to-surface" />
       ) : (
-        <>
-          <div className="mt-5">
-            <Hero movie={hero} onOpen={() => setSelected(hero)} />
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3">
-            {rest.map((m, i) => (
-              <MovieCard key={m.id} movie={m} rank={i + 2} onClick={() => setSelected(m)} />
-            ))}
-          </div>
-
-          {canMore && (
-            <div className="mt-10 flex justify-center">
-              <button
-                onClick={() => load(page + 1, false)}
-                disabled={loadingMore}
-                className="rounded-full border border-line px-6 py-2.5 text-sm font-bold text-text transition hover:border-gold hover:text-gold disabled:opacity-50"
-              >
-                {loadingMore ? "Carregando…" : "Carregar mais"}
-              </button>
-            </div>
-          )}
-        </>
+        <Hero movie={hero} logo={heroLogo} genres={genres} onOpen={() => setSelected(hero)} />
       )}
+
+      {/* Rows pulled up to overlap the hero fade, like Netflix */}
+      <div className="relative z-10 -mt-10 sm:-mt-16">
+        <Row
+          title="Em alta — mais bem avaliados"
+          providers={providerList}
+          showRank
+          excludeId={hero?.id}
+          onSelect={setSelected}
+        />
+
+        {showProviderRows &&
+          PROVIDERS.map((p) => (
+            <Row
+              key={p.id}
+              title={`Destaques na ${p.name}`}
+              providers={[p.id]}
+              onSelect={setSelected}
+            />
+          ))}
+
+        {GENRE_ROWS.map((g) => (
+          <Row
+            key={g.id}
+            title={g.label}
+            providers={providerList}
+            genre={g.id}
+            onSelect={setSelected}
+          />
+        ))}
+      </div>
 
       {selected && (
         <DetailSheet movie={selected} genres={genres} onClose={() => setSelected(null)} />
       )}
-    </div>
-  );
-}
-
-function Chip({
-  label,
-  active,
-  onClick,
-  dot,
-  small,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-  dot?: string;
-  small?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold ${
-        small ? "px-3 py-1 text-xs" : "px-4 py-1.5 text-sm"
-      } ${
-        active
-          ? "border-gold bg-gold text-ink font-bold"
-          : "border-line bg-surface text-text/80 font-medium hover:border-muted"
-      }`}
-    >
-      {dot && (
-        <span
-          className="h-2 w-2 rounded-full"
-          style={{ backgroundColor: active ? "#0E0F15" : dot }}
-        />
-      )}
-      {label}
-    </button>
-  );
-}
-
-function GridSkeleton() {
-  return (
-    <div className="mt-5">
-      <div className="h-60 w-full animate-pulse rounded-2xl bg-surface" />
-      <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i}>
-            <div className="aspect-[2/3] w-full animate-pulse rounded-xl bg-surface" />
-            <div className="mt-2 h-3 w-3/4 animate-pulse rounded bg-surface" />
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

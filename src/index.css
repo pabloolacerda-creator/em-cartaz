@@ -14,8 +14,8 @@ body,
 
 body {
   margin: 0;
-  background-color: #12131a;
-  color: #edeef2;
+  background-color: #141414;
+  color: #f3f3f3;
   font-family: "Archivo", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
