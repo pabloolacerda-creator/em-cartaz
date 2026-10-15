@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { MonthProvider } from './MonthContext';
 import { useData } from './useData';
+import RegisterScreen from './RegisterScreen';
 import TopBar, { type Tab } from './TopBar';
 
 const TITLES: Record<Tab, string> = {
@@ -21,8 +22,7 @@ function Placeholder({ title }: { title: string }) {
 
 function ShellInner() {
   const [tab, setTab] = useState<Tab>('caixa');
-  // Passed to screens in Tasks 8-10.
-  const { loading, error } = useData();
+  const { entries, fixedBills, reload, loading, error } = useData();
   return (
     <div className="min-h-screen bg-bg text-txt">
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
@@ -33,7 +33,11 @@ function ShellInner() {
           </p>
         )}
         {loading && <p className="text-sm text-muted">Carregando...</p>}
-        <Placeholder title={TITLES[tab]} />
+        {tab === 'caixa' ? (
+          <Placeholder title={TITLES[tab]} />
+        ) : (
+          <RegisterScreen tab={tab} reload={reload} entries={entries} fixedBills={fixedBills} />
+        )}
       </div>
     </div>
   );
