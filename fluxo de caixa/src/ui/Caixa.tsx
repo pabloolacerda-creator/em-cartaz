@@ -18,22 +18,6 @@ const STAT_TITLES: Record<StatKey, string> = {
   toPay: 'Tenho pra sair',
 };
 
-function entriesForStat(key: StatKey, all: Entry[], month: string): Entry[] {
-  return all.filter(e => {
-    const remaining = e.amountCents - e.paidCents;
-    switch (key) {
-      case 'toPay':
-        return e.kind === 'out' && remaining > 0 && e.dueDate.slice(0, 7) === month;
-      case 'toReceive':
-        return e.kind === 'in' && remaining > 0 && e.dueDate.slice(0, 7) === month;
-      case 'spent':
-        return e.kind === 'out' && e.paidCents > 0 && e.paidDate?.slice(0, 7) === month;
-      case 'earned':
-        return e.kind === 'in' && e.paidCents > 0 && e.paidDate?.slice(0, 7) === month;
-    }
-  });
-}
-
 export default function Caixa({ entries, reload }: Props) {
   const { month } = useMonth();
   const [openList, setOpenList] = useState<StatKey | null>(null);
@@ -53,7 +37,9 @@ export default function Caixa({ entries, reload }: Props) {
     return (
       <EntryDetail
         title={STAT_TITLES[openList]}
-        entries={entriesForStat(openList, entries, month)}
+        statKey={openList}
+        allEntries={entries}
+        month={month}
         onBack={() => setOpenList(null)}
         reload={reload}
       />
