@@ -47,12 +47,14 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
       name: name.trim(),
       description: description.trim(),
       amountCents: cents,
-      purchaseDate,
     };
+    // Income has no "purchase date": its purchase date mirrors the receipt date.
+    const purchaseFor = (d: string) => (kind === 'in' ? d : purchaseDate);
     try {
       if (repeat === 'none') {
         await onSubmit({
           ...base,
+          purchaseDate: purchaseFor(dueDate),
           dueDate,
           paidCents: settled ? cents : 0,
           paidDate: settled ? dueDate : null,
@@ -61,7 +63,7 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
       } else {
         const seriesId = crypto.randomUUID();
         for (const d of seriesDueDates(dueDate, repeat, count)) {
-          await onSubmit({ ...base, dueDate: d, paidCents: 0, paidDate: null, sourceFixedId: seriesId });
+          await onSubmit({ ...base, purchaseDate: purchaseFor(d), dueDate: d, paidCents: 0, paidDate: null, sourceFixedId: seriesId });
         }
       }
       setName(''); setDescription(''); setValor('');
@@ -91,19 +93,29 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
         <input id="ef-valor" className={inputCls} inputMode="decimal" placeholder="0,00" value={valor} onChange={(e) => setValor(e.target.value)} />
         {invalid && <p role="alert" className="mt-1 text-sm text-red">Valor inválido</p>}
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label htmlFor="ef-purchase" className="mb-1 block text-sm text-muted">Data da compra</label>
-          <input id="ef-purchase" type="date" className={inputCls} value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
-        </div>
+      {kind === 'in' ? (
         <div>
           <label htmlFor="ef-due" className="mb-1 block text-sm text-muted">
-            {repeat === 'none' ? 'Vencimento' : 'Primeiro vencimento'}
+            {repeat === 'none' ? 'Data do recebimento' : 'Primeiro recebimento'}
           </label>
           <input id="ef-due" type="date" required className={inputCls} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           <p className="mt-1 text-xs text-muted">Obrigatório</p>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="ef-purchase" className="mb-1 block text-sm text-muted">Data da compra</label>
+            <input id="ef-purchase" type="date" className={inputCls} value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="ef-due" className="mb-1 block text-sm text-muted">
+              {repeat === 'none' ? 'Vencimento' : 'Primeiro vencimento'}
+            </label>
+            <input id="ef-due" type="date" required className={inputCls} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <p className="mt-1 text-xs text-muted">Obrigatório</p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="ef-repeat" className="mb-1 block text-sm text-muted">Repetição</label>
