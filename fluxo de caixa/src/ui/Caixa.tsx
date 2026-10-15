@@ -49,7 +49,7 @@ export default function Caixa({ entries, fixedBills, reload }: Props) {
   return (
     <div className="space-y-6">
       <StatCards summary={summary} />
-      <EntryList entries={monthEntries} />
+      <EntryList entries={monthEntries} reload={reload} />
     </div>
   );
 }

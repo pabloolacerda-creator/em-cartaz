@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import type { Entry } from '../core/types';
 import { formatBRL } from '../core/money';
+import PayModal from './PayModal';
 
 const ddmm = (d: string): string => `${d.slice(8, 10)}/${d.slice(5, 7)}`;
 
@@ -11,7 +13,7 @@ function Tag({ children, tone = 'text-muted' }: { children: string; tone?: strin
   );
 }
 
-function Row({ e }: { e: Entry }) {
+function Row({ e, onPay }: { e: Entry; onPay: (e: Entry) => void }) {
   const isIn = e.kind === 'in';
   const partial = e.paidCents > 0 && e.paidCents < e.amountCents;
   return (
@@ -34,6 +36,15 @@ function Row({ e }: { e: Entry }) {
           )}
         </div>
       </div>
+      {e.paidCents < e.amountCents && (
+        <button
+          type="button"
+          onClick={() => onPay(e)}
+          className="shrink-0 rounded-lg border border-line px-2 py-1 text-xs text-muted hover:text-white"
+        >
+          {isIn ? 'marcar recebido' : 'marcar pago'}
+        </button>
+      )}
       <div className={`shrink-0 font-semibold tabular-nums ${isIn ? 'text-green' : 'text-red'}`}>
         {isIn ? '+' : '−'} {formatBRL(e.amountCents)}
       </div>
@@ -41,16 +52,34 @@ function Row({ e }: { e: Entry }) {
   );
 }
 
-export default function EntryList({ entries }: { entries: Entry[] }) {
+export default function EntryList({
+  entries,
+  reload,
+}: {
+  entries: Entry[];
+  reload?: () => Promise<void>;
+}) {
+  const [paying, setPaying] = useState<Entry | null>(null);
   return (
-    <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
-      {entries.length === 0 ? (
-        <li className="px-4 py-6 text-center text-sm text-muted">
-          Nenhum lançamento neste mês.
-        </li>
-      ) : (
-        entries.map(e => <Row key={e.id} e={e} />)
+    <>
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
+        {entries.length === 0 ? (
+          <li className="px-4 py-6 text-center text-sm text-muted">
+            Nenhum lançamento neste mês.
+          </li>
+        ) : (
+          entries.map(e => <Row key={e.id} e={e} onPay={setPaying} />)
+        )}
+      </ul>
+      {paying && (
+        <PayModal
+          entry={paying}
+          onDone={() => {
+            setPaying(null);
+            void reload?.();
+          }}
+        />
       )}
-    </ul>
+    </>
   );
 }
