@@ -7,3 +7,4 @@ export interface Entry {
   sourceFixedId: string | null;
 }
 export type NewEntry = Omit<Entry, 'id'>;
+export interface FixedBill { id: string; kind: Kind; name: string; description: string; amountCents: number; dueDay: number; }
