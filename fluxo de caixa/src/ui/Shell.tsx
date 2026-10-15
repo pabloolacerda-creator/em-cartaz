@@ -2,23 +2,8 @@ import { useState } from 'react';
 import { MonthProvider } from './MonthContext';
 import { useData } from './useData';
 import RegisterScreen from './RegisterScreen';
+import Caixa from './Caixa';
 import TopBar, { type Tab } from './TopBar';
-
-const TITLES: Record<Tab, string> = {
-  caixa: 'Caixa',
-  in: 'Entradas',
-  out: 'Saídas',
-  fixed: 'Contas fixas',
-};
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <section className="rounded-2xl border border-line bg-card p-6">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="mt-1 text-sm text-muted">Em breve.</p>
-    </section>
-  );
-}
 
 function ShellInner() {
   const [tab, setTab] = useState<Tab>('caixa');
@@ -34,7 +19,7 @@ function ShellInner() {
         )}
         {loading && <p className="text-sm text-muted">Carregando...</p>}
         {tab === 'caixa' ? (
-          <Placeholder title={TITLES[tab]} />
+          <Caixa entries={entries} fixedBills={fixedBills} reload={reload} />
         ) : (
           <RegisterScreen tab={tab} reload={reload} entries={entries} fixedBills={fixedBills} />
         )}
