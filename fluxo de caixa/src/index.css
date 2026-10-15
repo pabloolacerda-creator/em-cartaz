@@ -51,13 +51,47 @@ body { background: #0f1115; }
   .space-bg::after { animation: none; }
 }
 
-/* Glassmorphism card */
+/* Glassmorphism card — dark & transparent, the light behind bleeds through */
 .glass {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow:
-    0 10px 45px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  position: relative;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.02) 45%, rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+/* crisp gradient hairline border, brightest at opposite corners */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.08) 35%,
+    rgba(255, 255, 255, 0.04) 65%,
+    rgba(255, 255, 255, 0.85)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Colored light glowing behind the glass */
+.glow-orb {
+  position: absolute;
+  top: -60px;
+  left: -55px;
+  width: 300px;
+  height: 300px;
+  border-radius: 44px;
+  background: linear-gradient(135deg, #ff8a3d, #ff2d55 55%, #ff1e8a);
+  filter: blur(8px);
+  opacity: 0.9;
+  z-index: 0;
+  pointer-events: none;
 }
