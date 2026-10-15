@@ -77,7 +77,7 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
   const btn = kind === 'in' ? 'bg-green text-bg' : 'bg-red text-bg';
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-2xl border border-line bg-card p-4">
+    <form onSubmit={submit} className="glass space-y-3 rounded-2xl p-4">
       <div>
         <label htmlFor="ef-name" className="mb-1 block text-sm text-muted">Nome</label>
         <input id="ef-name" className={inputCls} value={name} onChange={(e) => setName(e.target.value)} />

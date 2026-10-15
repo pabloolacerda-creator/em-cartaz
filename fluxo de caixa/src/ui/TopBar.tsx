@@ -32,7 +32,7 @@ export default function TopBar({ tab, onTab }: { tab: Tab; onTab: (t: Tab) => vo
         </button>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav className="flex flex-wrap gap-1 rounded-full border border-line bg-card p-1">
+        <nav className="glass flex flex-wrap gap-1 rounded-full p-1">
           {TABS.map((t) => (
             <button
               key={t.id}

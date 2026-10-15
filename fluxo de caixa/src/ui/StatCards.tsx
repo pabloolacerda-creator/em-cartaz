@@ -16,8 +16,8 @@ function Card({
   const clickable = Boolean(onClick);
   return (
     <div
-      className={`rounded-2xl border border-line bg-card p-4 ${wide ? 'col-span-2' : ''} ${
-        clickable ? 'cursor-pointer transition-colors hover:border-muted' : ''
+      className={`glass rounded-2xl p-4 ${wide ? 'col-span-2' : ''} ${
+        clickable ? 'cursor-pointer transition hover:brightness-125' : ''
       }`}
       {...(clickable
         ? {
@@ -55,7 +55,7 @@ export default function StatCards({
   const open = (key: StatKey) => (onOpen ? () => onOpen(key) : undefined);
   return (
     <section aria-label="Resumo do mês" className="space-y-3">
-      <div className="relative overflow-hidden rounded-3xl border border-line bg-card p-6 shadow-[0_0_60px_-15px_rgba(61,220,132,0.35)]">
+      <div className="glass relative overflow-hidden rounded-3xl p-6">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-green/10 blur-3xl"

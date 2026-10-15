@@ -9,7 +9,7 @@ function ShellInner() {
   const [tab, setTab] = useState<Tab>('caixa');
   const { entries, reload, loading, error } = useData();
   return (
-    <div className="min-h-screen bg-bg text-txt">
+    <div className="space-bg min-h-screen text-txt">
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
         <TopBar tab={tab} onTab={setTab} />
         {error && (

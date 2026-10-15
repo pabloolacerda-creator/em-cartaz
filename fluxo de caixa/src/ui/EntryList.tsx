@@ -62,7 +62,7 @@ export default function EntryList({
   const [paying, setPaying] = useState<Entry | null>(null);
   return (
     <>
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
+      <ul className="glass divide-y divide-line overflow-hidden rounded-2xl">
         {entries.length === 0 ? (
           <li className="px-4 py-6 text-center text-sm text-muted">
             Nenhum lançamento neste mês.

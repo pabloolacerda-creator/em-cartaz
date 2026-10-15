@@ -23,7 +23,7 @@ export default function ConfirmDialog({
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-sm space-y-4 rounded-2xl border border-line bg-card p-5"
+        className="glass w-full max-w-sm space-y-4 rounded-2xl p-5"
         onClick={e => e.stopPropagation()}
       >
         <div>

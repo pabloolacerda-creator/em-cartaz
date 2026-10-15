@@ -46,7 +46,7 @@ export default function LoginScreen() {
     <div className="space-bg min-h-screen text-txt flex items-center justify-center p-4">
       <div className="relative w-full max-w-sm">
         <div className="glow-orb" aria-hidden />
-        <form onSubmit={onSubmit} className="glass relative z-10 w-full p-6 space-y-4">
+        <form onSubmit={onSubmit} className="glass relative z-10 w-full rounded-3xl p-6 space-y-4">
         <h1 className="text-2xl font-bold text-center tracking-tight">Meu Caixa</h1>
         <p className="text-sm text-muted text-center">
           {mode === 'in' ? 'Que bom te ver. Vamos ao seu caixa?' : 'Vamos criar seu caixa. É rapidinho.'}

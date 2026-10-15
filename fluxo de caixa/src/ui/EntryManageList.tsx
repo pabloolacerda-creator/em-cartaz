@@ -56,7 +56,7 @@ export default function EntryManageList({
   return (
     <div className="space-y-2">
       {error && <p className="text-sm text-red">{error}</p>}
-      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
+      <ul className="glass divide-y divide-line overflow-hidden rounded-2xl">
         {entries.length === 0 ? (
           <li className="px-4 py-6 text-center text-sm text-muted">{emptyText}</li>
         ) : (
