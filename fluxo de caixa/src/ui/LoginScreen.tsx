@@ -30,7 +30,7 @@ export default function LoginScreen() {
       if (mode === 'in') await signIn(email.trim(), password);
       else {
         await signUp(email.trim(), password);
-        setInfo('Conta criada. Se necessário, confirme seu e-mail e entre.');
+        setInfo('Pronto, sua conta foi criada! Se pedir, confirme o e-mail e entre.');
       }
     } catch (err) {
       setError(friendlyError(err));
@@ -43,10 +43,12 @@ export default function LoginScreen() {
     'w-full rounded-lg border border-line bg-bg px-3 py-2 text-txt placeholder:text-muted focus:outline-none focus:border-blue';
 
   return (
-    <div className="min-h-screen bg-bg text-txt flex items-center justify-center p-4">
-      <form onSubmit={onSubmit} className="w-full max-w-sm rounded-xl border border-line bg-card p-6 space-y-4">
-        <h1 className="text-xl font-semibold text-center">Fluxo de Caixa</h1>
-        <p className="text-sm text-muted text-center">{mode === 'in' ? 'Entrar' : 'Criar conta'}</p>
+    <div className="space-bg min-h-screen text-txt flex items-center justify-center p-4">
+      <form onSubmit={onSubmit} className="relative z-10 w-full max-w-sm rounded-2xl border border-white/10 bg-card/70 p-6 space-y-4 shadow-2xl backdrop-blur-xl">
+        <h1 className="text-2xl font-bold text-center tracking-tight">Meu Caixa</h1>
+        <p className="text-sm text-muted text-center">
+          {mode === 'in' ? 'Que bom te ver. Vamos ao seu caixa?' : 'Vamos criar seu caixa. É rapidinho.'}
+        </p>
         <input
           type="email"
           required
@@ -73,7 +75,7 @@ export default function LoginScreen() {
           disabled={busy}
           className="w-full rounded-lg bg-green py-2 font-semibold text-bg disabled:opacity-60"
         >
-          {busy ? 'Aguarde...' : mode === 'in' ? 'Entrar' : 'Criar conta'}
+          {busy ? 'Aguarde...' : mode === 'in' ? 'Entrar agora' : 'Criar minha conta'}
         </button>
         <button
           type="button"
@@ -84,7 +86,7 @@ export default function LoginScreen() {
           }}
           className="w-full text-sm text-muted hover:text-txt"
         >
-          {mode === 'in' ? 'Não tem conta? Criar conta' : 'Já tem conta? Entrar'}
+          {mode === 'in' ? 'É sua primeira vez? Crie sua conta' : 'Já tem conta? Entrar'}
         </button>
       </form>
     </div>
