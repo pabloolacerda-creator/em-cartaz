@@ -17,6 +17,17 @@ describe('EntryForm', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it('keeps submit disabled when Vencimento is empty', async () => {
+    const spy = vi.fn();
+    render(<EntryForm kind="out" onSaved={() => {}} onSubmit={spy} />);
+    await userEvent.type(screen.getByLabelText('Nome'), 'Aluguel');
+    await userEvent.type(screen.getByLabelText('Valor'), '10,00');
+    const btn = screen.getByRole('button', { name: 'Salvar' }) as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    await userEvent.click(btn);
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   it('submits valid entry with cents and kind', async () => {
     const spy = vi.fn();
     const saved = vi.fn();

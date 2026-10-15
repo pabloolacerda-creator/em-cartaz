@@ -28,8 +28,10 @@ export default function Caixa({ entries, fixedBills, reload }: Props) {
     void (async () => {
       try {
         await Promise.all(todo.map(createEntry));
-      } catch {
-        // keys stay marked: no retry loop; a page reload retries
+      } catch (err) {
+        // keys stay marked: no retry loop; a page reload retries.
+        // A unique-violation (duplicate from another tab/device) is benign.
+        console.error('Fixed-bill generation failed', err);
       }
       await reload();
     })();

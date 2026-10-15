@@ -29,8 +29,13 @@ create table if not exists public.fixed_bills (
 alter table public.entries enable row level security;
 alter table public.fixed_bills enable row level security;
 
+create unique index if not exists entries_fixed_once
+  on public.entries (user_id, source_fixed_id, due_date) where source_fixed_id is not null;
+
+drop policy if exists "entries owner only" on public.entries;
 create policy "entries owner only" on public.entries
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "fixed_bills owner only" on public.fixed_bills;
 create policy "fixed_bills owner only" on public.fixed_bills
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

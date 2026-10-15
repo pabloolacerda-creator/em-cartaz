@@ -23,7 +23,7 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
 
   const cents = parseBRL(valor);
   const invalid = valor.trim() !== '' && cents === null;
-  const canSubmit = cents !== null && name.trim() !== '' && !busy;
+  const canSubmit = cents !== null && name.trim() !== '' && dueDate !== '' && !busy;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -75,7 +75,8 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
         </div>
         <div>
           <label htmlFor="ef-due" className="mb-1 block text-sm text-muted">Vencimento</label>
-          <input id="ef-due" type="date" className={inputCls} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          <input id="ef-due" type="date" required className={inputCls} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          <p className="mt-1 text-xs text-muted">Obrigatório</p>
         </div>
       </div>
       {error && <p role="alert" className="text-sm text-red">{error}</p>}
