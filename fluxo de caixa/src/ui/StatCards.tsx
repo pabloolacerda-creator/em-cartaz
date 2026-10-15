@@ -1,14 +1,42 @@
 import type { MonthSummary } from '../core/summary';
 import { formatBRL } from '../core/money';
 
+export type StatKey = 'earned' | 'spent' | 'toReceive' | 'toPay';
+
 function Card({
-  label, value, tone, sub, wide,
-}: { label: string; value: number; tone: string; sub?: string; wide?: boolean }) {
+  label, value, tone, sub, wide, onClick,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+  sub?: string;
+  wide?: boolean;
+  onClick?: () => void;
+}) {
+  const clickable = Boolean(onClick);
   return (
     <div
-      className={`rounded-2xl border border-line bg-card p-4 ${wide ? 'col-span-2' : ''}`}
+      className={`rounded-2xl border border-line bg-card p-4 ${wide ? 'col-span-2' : ''} ${
+        clickable ? 'cursor-pointer transition-colors hover:border-muted' : ''
+      }`}
+      {...(clickable
+        ? {
+            role: 'button',
+            tabIndex: 0,
+            onClick,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick?.();
+              }
+            },
+          }
+        : {})}
     >
-      <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
+      <div className="flex items-center justify-between">
+        <div className="text-xs uppercase tracking-wide text-muted">{label}</div>
+        {clickable && <span aria-hidden className="text-xs text-muted">›</span>}
+      </div>
       <div className={`mt-1 text-xl font-semibold tabular-nums sm:text-2xl ${tone}`}>
         {formatBRL(value)}
       </div>
@@ -17,7 +45,14 @@ function Card({
   );
 }
 
-export default function StatCards({ summary }: { summary: MonthSummary }) {
+export default function StatCards({
+  summary,
+  onOpen,
+}: {
+  summary: MonthSummary;
+  onOpen?: (key: StatKey) => void;
+}) {
+  const open = (key: StatKey) => (onOpen ? () => onOpen(key) : undefined);
   return (
     <section aria-label="Resumo do mês" className="space-y-3">
       <div className="relative overflow-hidden rounded-3xl border border-line bg-card p-6 shadow-[0_0_60px_-15px_rgba(61,220,132,0.35)]">
@@ -35,10 +70,10 @@ export default function StatCards({ summary }: { summary: MonthSummary }) {
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Card label="Quanto ganhei" value={summary.earned} tone="text-green" />
-        <Card label="Quanto gastei" value={summary.spent} tone="text-red" />
-        <Card label="Tenho pra entrar" value={summary.toReceive} tone="text-blue" />
-        <Card label="Tenho pra sair" value={summary.toPay} tone="text-red" />
+        <Card label="Quanto ganhei" value={summary.earned} tone="text-green" onClick={open('earned')} />
+        <Card label="Quanto gastei" value={summary.spent} tone="text-red" onClick={open('spent')} />
+        <Card label="Tenho pra entrar" value={summary.toReceive} tone="text-blue" onClick={open('toReceive')} />
+        <Card label="Tenho pra sair" value={summary.toPay} tone="text-red" onClick={open('toPay')} />
         <Card
           wide
           label="Sobra prevista no fim do mês"
