@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Entry, FixedBill } from '../core/types';
+import { useMemo, useState } from 'react';
+import type { Entry } from '../core/types';
 import { monthSummary } from '../core/summary';
-import { occurrencesToGenerate } from '../core/recurring';
-import { createEntry } from '../data/entries';
 import { useMonth } from './MonthContext';
 import StatCards, { type StatKey } from './StatCards';
 import EntryList from './EntryList';
@@ -10,7 +8,6 @@ import EntryDetail from './EntryDetail';
 
 interface Props {
   entries: Entry[];
-  fixedBills: FixedBill[];
   reload: () => Promise<void>;
 }
 
@@ -37,30 +34,9 @@ function entriesForStat(key: StatKey, all: Entry[], month: string): Entry[] {
   });
 }
 
-export default function Caixa({ entries, fixedBills, reload }: Props) {
+export default function Caixa({ entries, reload }: Props) {
   const { month } = useMonth();
   const [openList, setOpenList] = useState<StatKey | null>(null);
-  // Keys (fixedId|dueDate) of occurrences already created or in flight. Survives
-  // StrictMode double-effects and month changes; only cleared on failure.
-  const handled = useRef<Set<string>>(new Set());
-
-  useEffect(() => {
-    const todo = occurrencesToGenerate(fixedBills, entries, month).filter(
-      o => !handled.current.has(`${o.sourceFixedId}|${o.dueDate}`),
-    );
-    if (todo.length === 0) return;
-    todo.forEach(o => handled.current.add(`${o.sourceFixedId}|${o.dueDate}`));
-    void (async () => {
-      try {
-        await Promise.all(todo.map(createEntry));
-      } catch (err) {
-        // keys stay marked: no retry loop; a page reload retries.
-        // A unique-violation (duplicate from another tab/device) is benign.
-        console.error('Fixed-bill generation failed', err);
-      }
-      await reload();
-    })();
-  }, [month, fixedBills, entries, reload]);
 
   const monthEntries = useMemo(
     () =>

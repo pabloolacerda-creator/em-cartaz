@@ -11,7 +11,9 @@ export async function signUp(email: string, password: string): Promise<void> {
 }
 
 export async function signOut(): Promise<void> {
-  const { error } = await supabase.auth.signOut();
+  // scope: 'local' clears this device's session immediately without waiting on
+  // a server-side global revoke that can fail/hang and leave the user stuck.
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) throw error;
 }
 

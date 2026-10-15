@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { parseBRL } from '../core/money';
 import type { Kind, NewEntry } from '../core/types';
+import { seriesDueDates, type Freq } from '../core/series';
 import { createEntry } from '../data/entries';
 
 interface Props {
@@ -9,8 +10,12 @@ interface Props {
   onSubmit?: (input: NewEntry) => unknown;
 }
 
+type Repeat = 'none' | Freq;
+
 const inputCls =
   'w-full rounded-lg border border-line bg-bg px-3 py-2 text-txt placeholder:text-muted focus:outline-none focus:border-blue';
+
+const MAX_TIMES = 60;
 
 export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Props) {
   const [name, setName] = useState('');
@@ -18,31 +23,49 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
   const [valor, setValor] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [repeat, setRepeat] = useState<Repeat>('none');
+  const [times, setTimes] = useState('');
+  const [settled, setSettled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const cents = parseBRL(valor);
   const invalid = valor.trim() !== '' && cents === null;
-  const canSubmit = cents !== null && name.trim() !== '' && dueDate !== '' && !busy;
+  const count = parseInt(times, 10);
+  const timesOk =
+    repeat === 'none' || (Number.isInteger(count) && count >= 2 && count <= MAX_TIMES);
+  const canSubmit =
+    cents !== null && name.trim() !== '' && dueDate !== '' && timesOk && !busy;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (cents === null) return;
+    if (cents === null || !timesOk) return;
     setError(null);
     setBusy(true);
+    const base = {
+      kind,
+      name: name.trim(),
+      description: description.trim(),
+      amountCents: cents,
+      purchaseDate,
+    };
     try {
-      await onSubmit({
-        kind,
-        name: name.trim(),
-        description: description.trim(),
-        amountCents: cents,
-        paidCents: 0,
-        purchaseDate,
-        dueDate,
-        paidDate: null,
-        sourceFixedId: null,
-      });
-      setName(''); setDescription(''); setValor(''); setPurchaseDate(''); setDueDate('');
+      if (repeat === 'none') {
+        await onSubmit({
+          ...base,
+          dueDate,
+          paidCents: settled ? cents : 0,
+          paidDate: settled ? dueDate : null,
+          sourceFixedId: null,
+        });
+      } else {
+        const seriesId = crypto.randomUUID();
+        for (const d of seriesDueDates(dueDate, repeat, count)) {
+          await onSubmit({ ...base, dueDate: d, paidCents: 0, paidDate: null, sourceFixedId: seriesId });
+        }
+      }
+      setName(''); setDescription(''); setValor('');
+      setPurchaseDate(''); setDueDate(''); setRepeat('none'); setTimes(''); setSettled(false);
       onSaved();
     } catch {
       setError('Não foi possível salvar. Tente novamente.');
@@ -74,11 +97,53 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
           <input id="ef-purchase" type="date" className={inputCls} value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="ef-due" className="mb-1 block text-sm text-muted">Vencimento</label>
+          <label htmlFor="ef-due" className="mb-1 block text-sm text-muted">
+            {repeat === 'none' ? 'Vencimento' : 'Primeiro vencimento'}
+          </label>
           <input id="ef-due" type="date" required className={inputCls} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           <p className="mt-1 text-xs text-muted">Obrigatório</p>
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="ef-repeat" className="mb-1 block text-sm text-muted">Repetição</label>
+          <select
+            id="ef-repeat"
+            className={inputCls}
+            value={repeat}
+            onChange={(e) => setRepeat(e.target.value as Repeat)}
+          >
+            <option value="none">Não repete</option>
+            <option value="monthly">Mensal</option>
+            <option value="weekly">Semanal</option>
+          </select>
+        </div>
+        {repeat !== 'none' && (
+          <div>
+            <label htmlFor="ef-times" className="mb-1 block text-sm text-muted">Quantas vezes</label>
+            <input
+              id="ef-times"
+              className={inputCls}
+              inputMode="numeric"
+              placeholder="ex: 12"
+              value={times}
+              onChange={(e) => setTimes(e.target.value)}
+            />
+            <p className="mt-1 text-xs text-muted">Total de lançamentos (2 a {MAX_TIMES})</p>
+          </div>
+        )}
+      </div>
+      {repeat === 'none' && (
+        <label className="flex items-center gap-2 text-sm text-txt">
+          <input
+            type="checkbox"
+            checked={settled}
+            onChange={(e) => setSettled(e.target.checked)}
+            className="h-4 w-4 accent-green"
+          />
+          {kind === 'in' ? 'Já recebi' : 'Já paguei'}
+        </label>
+      )}
       {error && <p role="alert" className="text-sm text-red">{error}</p>}
       <button type="submit" disabled={!canSubmit} className={`rounded-lg px-4 py-2 font-semibold disabled:opacity-40 ${btn}`}>
         Salvar

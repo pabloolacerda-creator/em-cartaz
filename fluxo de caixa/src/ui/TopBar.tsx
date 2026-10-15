@@ -1,13 +1,12 @@
 import { signOut } from '../data/auth';
 import { useMonth } from './MonthContext';
 
-export type Tab = 'caixa' | 'in' | 'out' | 'fixed';
+export type Tab = 'caixa' | 'in' | 'out';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'caixa', label: 'Caixa' },
   { id: 'in', label: 'Entradas' },
   { id: 'out', label: 'Saídas' },
-  { id: 'fixed', label: 'Contas fixas' },
 ];
 
 function shift(month: string, delta: number): string {

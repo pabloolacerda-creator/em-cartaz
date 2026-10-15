@@ -30,7 +30,7 @@ function Row({ e, onPay }: { e: Entry; onPay: (e: Entry) => void }) {
         <div className="truncate font-medium">{e.name}</div>
         <div className="mt-1 flex flex-wrap gap-1.5">
           <Tag>{isIn ? `a receber ${ddmm(e.dueDate)}` : `Vence ${ddmm(e.dueDate)}`}</Tag>
-          {e.sourceFixedId && <Tag>repete todo mês</Tag>}
+          {e.sourceFixedId && <Tag>repetida</Tag>}
           {partial && (
             <Tag tone="text-amber">{`pago em parte · falta ${formatBRL(e.amountCents - e.paidCents)}`}</Tag>
           )}

@@ -7,7 +7,7 @@ import TopBar, { type Tab } from './TopBar';
 
 function ShellInner() {
   const [tab, setTab] = useState<Tab>('caixa');
-  const { entries, fixedBills, reload, loading, error } = useData();
+  const { entries, reload, loading, error } = useData();
   return (
     <div className="min-h-screen bg-bg text-txt">
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
@@ -19,9 +19,9 @@ function ShellInner() {
         )}
         {loading && <p className="text-sm text-muted">Carregando...</p>}
         {tab === 'caixa' ? (
-          <Caixa entries={entries} fixedBills={fixedBills} reload={reload} />
+          <Caixa entries={entries} reload={reload} />
         ) : (
-          <RegisterScreen tab={tab} reload={reload} entries={entries} fixedBills={fixedBills} />
+          <RegisterScreen tab={tab} reload={reload} entries={entries} />
         )}
       </div>
     </div>
