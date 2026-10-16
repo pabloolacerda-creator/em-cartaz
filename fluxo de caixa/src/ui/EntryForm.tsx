@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { parseBRL } from '../core/money';
 import type { Kind, NewEntry } from '../core/types';
 import { seriesDueDates, type Freq } from '../core/series';
+import { CATEGORIES } from '../core/categories';
 import { createEntry } from '../data/entries';
 
 interface Props {
@@ -20,6 +21,7 @@ const MAX_TIMES = 60;
 export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Props) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
   const [valor, setValor] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -46,6 +48,7 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
       kind,
       name: name.trim(),
       description: description.trim(),
+      category,
       amountCents: cents,
     };
     // Income has no "purchase date": its purchase date mirrors the receipt date.
@@ -66,7 +69,7 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
           await onSubmit({ ...base, purchaseDate: purchaseFor(d), dueDate: d, paidCents: 0, paidDate: null, sourceFixedId: seriesId });
         }
       }
-      setName(''); setDescription(''); setValor('');
+      setName(''); setDescription(''); setCategory(''); setValor('');
       setPurchaseDate(''); setDueDate(''); setRepeat('none'); setTimes(''); setSettled(false);
       onSaved();
     } catch {
@@ -84,9 +87,20 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
         <label htmlFor="ef-name" className="mb-1 block text-sm text-muted">Nome</label>
         <input id="ef-name" className={inputCls} value={name} onChange={(e) => setName(e.target.value)} />
       </div>
-      <div>
-        <label htmlFor="ef-desc" className="mb-1 block text-sm text-muted">Descrição</label>
-        <input id="ef-desc" className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label htmlFor="ef-desc" className="mb-1 block text-sm text-muted">Descrição</label>
+          <input id="ef-desc" className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
+        </div>
+        <div>
+          <label htmlFor="ef-cat" className="mb-1 block text-sm text-muted">Categoria</label>
+          <select id="ef-cat" className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
+            <option value="">Sem categoria</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
       </div>
       <div>
         <label htmlFor="ef-valor" className="mb-1 block text-sm text-muted">Valor</label>

@@ -10,6 +10,7 @@ const mk = (over: Partial<Entry> = {}): Entry => ({
   kind: 'out',
   name: 'Aluguel',
   description: '',
+  category: '',
   amountCents: 89000,
   paidCents: 0,
   paidDate: null,

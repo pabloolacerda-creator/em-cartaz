@@ -86,6 +86,7 @@ export default function EntryManageList({
                   )}
                   <div className="mt-1 text-xs text-muted">
                     {isIn ? 'a receber' : 'vence'} {ddmm(e.dueDate)}
+                    {e.category && ` · ${e.category}`}
                     {e.sourceFixedId && ' · repetida'}
                     {partial && ` · falta ${formatBRL(e.amountCents - e.paidCents)}`}
                     {e.paidCents >= e.amountCents && e.amountCents > 0 && (isIn ? ' · recebido' : ' · pago')}

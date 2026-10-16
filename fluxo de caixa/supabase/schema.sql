@@ -6,6 +6,7 @@ create table if not exists public.entries (
   kind text not null check (kind in ('in','out')),
   name text not null,
   description text,
+  category text,
   amount_cents integer not null,
   paid_cents integer not null default 0,
   purchase_date date,
@@ -25,6 +26,9 @@ create table if not exists public.fixed_bills (
   due_day integer not null check (due_day between 1 and 31),
   created_at timestamptz default now()
 );
+
+-- Migrations for existing databases (safe to re-run)
+alter table public.entries add column if not exists category text;
 
 alter table public.entries enable row level security;
 alter table public.fixed_bills enable row level security;

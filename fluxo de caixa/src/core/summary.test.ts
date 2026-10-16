@@ -5,7 +5,7 @@ import type { Entry } from './types';
 const M = '2026-10';
 let n = 0;
 const e = (o: Partial<Entry>): Entry => ({
-  id: String(++n), kind: 'out', name: 'x', description: '',
+  id: String(++n), kind: 'out', name: 'x', description: '', category: '',
   amountCents: 0, paidCents: 0, purchaseDate: '2026-10-01', dueDate: '2026-10-01',
   paidDate: null, sourceFixedId: null, ...o,
 });

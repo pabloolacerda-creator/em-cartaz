@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Entry } from '../core/types';
 import { parseBRL, formatBRL } from '../core/money';
+import { CATEGORIES } from '../core/categories';
 import { updateEntry } from '../data/entries';
 
 const inputCls =
@@ -16,6 +17,7 @@ export default function EntryEditModal({
   const isIn = entry.kind === 'in';
   const [name, setName] = useState(entry.name);
   const [description, setDescription] = useState(entry.description);
+  const [category, setCategory] = useState(entry.category);
   const [valor, setValor] = useState(formatBRL(entry.amountCents));
   const [purchaseDate, setPurchaseDate] = useState(entry.purchaseDate);
   const [dueDate, setDueDate] = useState(entry.dueDate);
@@ -34,6 +36,7 @@ export default function EntryEditModal({
       await updateEntry(entry.id, {
         name: name.trim(),
         description: description.trim(),
+        category,
         amountCents: cents,
         dueDate,
         purchaseDate: isIn ? dueDate : purchaseDate,
@@ -61,9 +64,20 @@ export default function EntryEditModal({
           <label htmlFor="ed-name" className="mb-1 block text-sm text-muted">Nome</label>
           <input id="ed-name" className={inputCls} value={name} onChange={(e) => setName(e.target.value)} />
         </div>
-        <div>
-          <label htmlFor="ed-desc" className="mb-1 block text-sm text-muted">Descrição</label>
-          <input id="ed-desc" className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="ed-desc" className="mb-1 block text-sm text-muted">Descrição</label>
+            <input id="ed-desc" className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="ed-cat" className="mb-1 block text-sm text-muted">Categoria</label>
+            <select id="ed-cat" className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">Sem categoria</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div>
           <label htmlFor="ed-valor" className="mb-1 block text-sm text-muted">Valor</label>

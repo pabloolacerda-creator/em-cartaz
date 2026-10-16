@@ -1,6 +1,7 @@
 export type Kind = 'in' | 'out';
 export interface Entry {
   id: string; kind: Kind; name: string; description: string;
+  category: string;                               // '' = sem categoria
   amountCents: number; paidCents: number;        // paidCents: realized portion, 0..amountCents
   purchaseDate: string; dueDate: string;          // 'YYYY-MM-DD'
   paidDate: string | null;                        // set when paidCents > 0

@@ -2,6 +2,7 @@ import type { Entry, FixedBill, Kind, NewEntry } from '../core/types';
 
 export interface EntryRow {
   id: string; kind: Kind; name: string; description: string | null;
+  category: string | null;
   amount_cents: number; paid_cents: number;
   purchase_date: string | null; due_date: string | null; paid_date: string | null;
   source_fixed_id: string | null;
@@ -13,6 +14,7 @@ export interface FixedBillRow {
 
 export const rowToEntry = (r: EntryRow): Entry => ({
   id: r.id, kind: r.kind, name: r.name, description: r.description ?? '',
+  category: r.category ?? '',
   amountCents: r.amount_cents, paidCents: r.paid_cents,
   purchaseDate: r.purchase_date ?? '', dueDate: r.due_date ?? '',
   paidDate: r.paid_date, sourceFixedId: r.source_fixed_id,
@@ -24,6 +26,7 @@ export function entryToRow(e: Partial<NewEntry>): Record<string, unknown> {
   if (e.kind !== undefined) row.kind = e.kind;
   if (e.name !== undefined) row.name = e.name;
   if (e.description !== undefined) row.description = e.description;
+  if (e.category !== undefined) row.category = e.category || null;
   if (e.amountCents !== undefined) row.amount_cents = e.amountCents;
   if (e.paidCents !== undefined) row.paid_cents = e.paidCents;
   if (e.purchaseDate !== undefined) row.purchase_date = e.purchaseDate || null;
