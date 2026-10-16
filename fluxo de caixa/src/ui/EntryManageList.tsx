@@ -4,6 +4,7 @@ import { formatBRL } from '../core/money';
 import { deleteEntry } from '../data/entries';
 import ConfirmDialog from './ConfirmDialog';
 import PayModal from './PayModal';
+import EntryEditModal from './EntryEditModal';
 
 const ddmm = (d: string): string => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}` : '');
 
@@ -36,6 +37,7 @@ export default function EntryManageList({
 }) {
   const [confirming, setConfirming] = useState<Entry | null>(null);
   const [paying, setPaying] = useState<Entry | null>(null);
+  const [editing, setEditing] = useState<Entry | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,7 +67,19 @@ export default function EntryManageList({
             const partial = e.paidCents > 0 && e.paidCents < e.amountCents;
             return (
               <li key={e.id} className="flex items-center gap-3 px-4 py-3">
-                <div className="min-w-0 flex-1">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setEditing(e)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                      ev.preventDefault();
+                      setEditing(e);
+                    }
+                  }}
+                  className="min-w-0 flex-1 cursor-pointer rounded-lg -mx-1 px-1 transition hover:bg-white/5"
+                  title="Clique para editar"
+                >
                   <div className="truncate font-medium">{e.name}</div>
                   {e.description && (
                     <div className="truncate text-xs text-muted">{e.description}</div>
@@ -121,6 +135,15 @@ export default function EntryManageList({
           entry={paying}
           onDone={() => {
             setPaying(null);
+            void reload();
+          }}
+        />
+      )}
+      {editing && (
+        <EntryEditModal
+          entry={editing}
+          onDone={() => {
+            setEditing(null);
             void reload();
           }}
         />
