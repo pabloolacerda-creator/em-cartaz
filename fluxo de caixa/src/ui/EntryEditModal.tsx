@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Entry } from '../core/types';
 import { parseBRL, formatBRL } from '../core/money';
-import { CATEGORIES } from '../core/categories';
+import { CATEGORIES, categoryColor } from '../core/categories';
 import { updateEntry } from '../data/entries';
 
 const inputCls =
@@ -70,7 +70,12 @@ export default function EntryEditModal({
             <input id="ed-desc" className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           <div>
-            <label htmlFor="ed-cat" className="mb-1 block text-sm text-muted">Categoria</label>
+            <label htmlFor="ed-cat" className="mb-1 flex items-center gap-1.5 text-sm text-muted">
+              Categoria
+              {category && (
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: categoryColor(category) }} />
+              )}
+            </label>
             <select id="ed-cat" className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
               <option value="">Sem categoria</option>
               {CATEGORIES.map((c) => (

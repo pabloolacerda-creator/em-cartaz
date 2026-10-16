@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Entry } from '../core/types';
 import { formatBRL } from '../core/money';
+import { categoryColor } from '../core/categories';
 import { deleteEntry } from '../data/entries';
 import ConfirmDialog from './ConfirmDialog';
 import PayModal from './PayModal';
@@ -84,12 +85,23 @@ export default function EntryManageList({
                   {e.description && (
                     <div className="truncate text-xs text-muted">{e.description}</div>
                   )}
-                  <div className="mt-1 text-xs text-muted">
-                    {isIn ? 'a receber' : 'vence'} {ddmm(e.dueDate)}
-                    {e.category && ` · ${e.category}`}
-                    {e.sourceFixedId && ' · repetida'}
-                    {partial && ` · falta ${formatBRL(e.amountCents - e.paidCents)}`}
-                    {e.paidCents >= e.amountCents && e.amountCents > 0 && (isIn ? ' · recebido' : ' · pago')}
+                  <div className="mt-1 flex flex-wrap items-center gap-x-1 text-xs text-muted">
+                    <span>{isIn ? 'a receber' : 'vence'} {ddmm(e.dueDate)}</span>
+                    {e.category && (
+                      <span className="inline-flex items-center gap-1">
+                        ·
+                        <span
+                          className="inline-block h-2 w-2 rounded-full"
+                          style={{ background: categoryColor(e.category) }}
+                        />
+                        {e.category}
+                      </span>
+                    )}
+                    {e.sourceFixedId && <span>· repetida</span>}
+                    {partial && <span>· falta {formatBRL(e.amountCents - e.paidCents)}</span>}
+                    {e.paidCents >= e.amountCents && e.amountCents > 0 && (
+                      <span>· {isIn ? 'recebido' : 'pago'}</span>
+                    )}
                   </div>
                 </div>
                 <div

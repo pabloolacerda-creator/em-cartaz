@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { parseBRL } from '../core/money';
 import type { Kind, NewEntry } from '../core/types';
 import { seriesDueDates, type Freq } from '../core/series';
-import { CATEGORIES } from '../core/categories';
+import { CATEGORIES, categoryColor } from '../core/categories';
 import { createEntry } from '../data/entries';
 
 interface Props {
@@ -93,7 +93,12 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
           <input id="ef-desc" className={inputCls} value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
         <div>
-          <label htmlFor="ef-cat" className="mb-1 block text-sm text-muted">Categoria</label>
+          <label htmlFor="ef-cat" className="mb-1 flex items-center gap-1.5 text-sm text-muted">
+            Categoria
+            {category && (
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: categoryColor(category) }} />
+            )}
+          </label>
           <select id="ef-cat" className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
             <option value="">Sem categoria</option>
             {CATEGORIES.map((c) => (
