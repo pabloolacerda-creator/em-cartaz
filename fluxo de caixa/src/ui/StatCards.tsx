@@ -3,6 +3,15 @@ import { formatBRL } from '../core/money';
 
 export type StatKey = 'earned' | 'spent' | 'toReceive' | 'toPay';
 
+function onKey(fn: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fn();
+    }
+  };
+}
+
 function Card({
   label, value, tone, sub, wide, onClick,
 }: {
@@ -20,17 +29,7 @@ function Card({
         clickable ? 'cursor-pointer transition hover:brightness-125' : ''
       }`}
       {...(clickable
-        ? {
-            role: 'button',
-            tabIndex: 0,
-            onClick,
-            onKeyDown: (e: React.KeyboardEvent) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                onClick?.();
-              }
-            },
-          }
+        ? { role: 'button', tabIndex: 0, onClick, onKeyDown: onKey(onClick!) }
         : {})}
     >
       <div className="flex items-center justify-between">
@@ -53,24 +52,35 @@ export default function StatCards({
   onOpen?: (key: StatKey) => void;
 }) {
   const open = (key: StatKey) => (onOpen ? () => onOpen(key) : undefined);
+  const heroClickable = Boolean(onOpen);
   return (
     <section aria-label="Resumo do mês" className="space-y-3">
-      <div className="glass relative overflow-hidden rounded-3xl p-6">
+      <div
+        className={`glass relative overflow-hidden rounded-3xl p-6 ${
+          heroClickable ? 'cursor-pointer transition hover:brightness-125' : ''
+        }`}
+        {...(heroClickable
+          ? { role: 'button', tabIndex: 0, onClick: open('earned'), onKeyDown: onKey(() => onOpen!('earned')) }
+          : {})}
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-green/10 blur-3xl"
         />
-        <div className="relative text-sm text-muted">Quanto tenho agora</div>
-        <div
-          className={`relative mt-1 text-4xl font-bold tabular-nums sm:text-5xl ${
-            summary.have < 0 ? 'text-red' : 'text-txt'
-          }`}
-        >
-          {formatBRL(summary.have)}
+        <div className="relative flex items-center justify-between">
+          <span className="text-sm text-muted">Quanto ganhei</span>
+          {heroClickable && <span aria-hidden className="text-sm text-muted">›</span>}
+        </div>
+        <div className="relative mt-1 text-4xl font-bold tabular-nums text-green sm:text-5xl">
+          {formatBRL(summary.earned)}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        <Card label="Quanto ganhei" value={summary.earned} tone="text-green" onClick={open('earned')} />
+        <Card
+          label="Quanto tenho agora"
+          value={summary.have}
+          tone={summary.have < 0 ? 'text-red' : 'text-txt'}
+        />
         <Card label="Quanto gastei" value={summary.spent} tone="text-red" onClick={open('spent')} />
         <Card label="Tenho pra entrar" value={summary.toReceive} tone="text-blue" onClick={open('toReceive')} />
         <Card label="Tenho pra sair" value={summary.toPay} tone="text-red" onClick={open('toPay')} />
