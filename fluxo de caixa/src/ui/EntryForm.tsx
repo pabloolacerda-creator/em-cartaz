@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { parseBRL } from '../core/money';
 import type { Kind, NewEntry } from '../core/types';
 import { seriesDueDates, type Freq } from '../core/series';
-import { CATEGORIES, categoryColor } from '../core/categories';
+import { CATEGORIES, categoryColor, categoryEmoji } from '../core/categories';
 import { createEntry } from '../data/entries';
 
 interface Props {
@@ -100,9 +100,9 @@ export default function EntryForm({ kind, onSaved, onSubmit = createEntry }: Pro
             )}
           </label>
           <select id="ef-cat" className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
-            <option value="">Sem categoria</option>
+            <option value="">⚪ Sem categoria</option>
             {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{categoryEmoji(c)} {c}</option>
             ))}
           </select>
         </div>

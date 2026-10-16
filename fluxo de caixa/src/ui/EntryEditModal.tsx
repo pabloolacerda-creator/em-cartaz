@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Entry } from '../core/types';
 import { parseBRL, formatBRL } from '../core/money';
-import { CATEGORIES, categoryColor } from '../core/categories';
+import { CATEGORIES, categoryColor, categoryEmoji } from '../core/categories';
 import { updateEntry } from '../data/entries';
 
 const inputCls =
@@ -77,9 +77,9 @@ export default function EntryEditModal({
               )}
             </label>
             <select id="ed-cat" className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
-              <option value="">Sem categoria</option>
+              <option value="">⚪ Sem categoria</option>
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{categoryEmoji(c)} {c}</option>
               ))}
             </select>
           </div>
