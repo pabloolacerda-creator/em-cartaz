@@ -1,4 +1,5 @@
-import { RouterProvider, createBrowserRouter, Link } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
+import SitePublico from './site/SitePublico'
 import Login from './app/Login'
 import RequireAuth from './app/RequireAuth'
 import Dashboard from './app/Dashboard'
@@ -10,17 +11,9 @@ import Funcionarios from './app/funcionarios/FuncionariosPage'
 
 const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel Caldemat</h1>
 
-// TEMPORÁRIO: o site institucional real (Task 12) substitui esta página.
-const Institucional = () => (
-  <main className="p-4">
-    <h1 className="text-2xl font-bold">Caldemat</h1>
-    <Link to="/app/login" className="underline">Login</Link>
-  </main>
-)
-
 export const router = createBrowserRouter(
   [
-    { path: '/', element: <Institucional /> },
+    { path: '/', element: <SitePublico /> },
     { path: '/app/login', element: <Login /> },
     {
       path: '/app',
