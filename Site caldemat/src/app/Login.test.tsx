@@ -9,7 +9,7 @@ import Login from './Login'
 
 function renderLogin() {
   return render(
-    <MemoryRouter initialEntries={['/app/login']}>
+    <MemoryRouter initialEntries={['/app/login']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/app/login" element={<Login />} />
         <Route path="/app" element={<div>PAINEL</div>} />
