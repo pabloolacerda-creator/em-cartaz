@@ -54,7 +54,15 @@ Observação: Estoque e Pedidos são independentes; um pedido não baixa o estoq
 - **Criar funcionário:** em **Funcionários**, preencha o formulário (nome, usuário e senha inicial), **marque os acessos** (Matéria-Prima, Estoque, Clientes, Pedidos) e clique em **Cadastrar**. Entregue usuário e senha à pessoa.
 - **Atenção:** os acessos são escolhidos **somente na criação**. Para mudar o acesso de alguém, **inative** o funcionário e **crie um novo login** com os acessos desejados.
 - **Resetar senha:** na linha do funcionário, clique em **Resetar senha**, defina a nova senha e avise a pessoa.
-- **Desligar alguém:** clique em **Inativar**; ele deixa de conseguir entrar, sem perder o histórico.
+- **Desligar alguém:** clique em **Inativar**; ele deixa de conseguir entrar, sem perder o histórico. Para trazê-lo de volta, clique em **Ativar** na linha dele (inativos continuam listados).
+
+### Se ficar sem administrador
+O sistema impede inativar ou rebaixar o último administrador, mas se por algum motivo ninguém conseguir mais entrar como administrador:
+1. No painel do **Supabase**, abra **Authentication > Users**, clique no usuário administrador e, se aparecer **banned** (banido), remova o banimento (**Unban**). Sem isso a pessoa continua sem conseguir entrar.
+2. Abra o **SQL Editor**, cole o conteúdo de `supabase/seed_admin.sql` (ajuste o e-mail `admin@caldemat.local` se for outro usuário) e clique em **Run**. Isso marca o usuário como administrador ativo, com todos os acessos.
+3. Entre em `/app/login` e, se necessário, troque a senha pelo painel (Authentication > Users).
+
+Para **reativar** um funcionário inativado, use o botão **Ativar** na tela Funcionários.
 
 ## 5. Onde ficam os dados
 

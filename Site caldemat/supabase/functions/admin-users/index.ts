@@ -120,6 +120,19 @@ export async function handler(req: Request): Promise<Response> {
         return json(200, { ok: true })
       }
 
+      case 'ativar': {
+        // Reativa: remove o ban no Auth e marca perfis.ativo=true (mesma autorização admin acima).
+        const id = String(body.id ?? '')
+        if (!id) return json(400, { erro: 'dados_invalidos' })
+        const { data: alvo } = await admin.from('perfis').select('id').eq('id', id).maybeSingle()
+        if (!alvo) return json(404, { erro: 'nao_encontrado' })
+        const { error: eb } = await admin.auth.admin.updateUserById(id, { ban_duration: 'none' })
+        if (eb) return json(400, { erro: 'falha_ativar', detalhe: eb.message })
+        const { error } = await admin.from('perfis').update({ ativo: true }).eq('id', id)
+        if (error) return json(500, { erro: 'falha_atualizar', detalhe: error.message })
+        return json(200, { ok: true })
+      }
+
       default:
         return json(400, { erro: 'acao_invalida' })
     }

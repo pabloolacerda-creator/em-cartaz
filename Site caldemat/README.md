@@ -39,6 +39,10 @@ O Supabase rejeita nomes de secret que começam com `SUPABASE_`, por isso o nome
 
 **d) Semear o primeiro admin:** em Authentication > Users crie `admin@caldemat.local` com senha (Auto Confirm); depois rode `supabase/seed_admin.sql` no SQL Editor (usa o id do usuário do Auth como `perfis.id` e marca `is_admin` e todos os `pode_*`).
 
+**d2) Cadastro público:** em Authentication > Sign In / Providers, desative "Allow new users to sign up" para evitar usuários `*.local` indesejados.
+
+**Sem administrador?** No Supabase: Authentication > Users > remova o banimento (Unban) do admin e rode `supabase/seed_admin.sql` no SQL Editor. Detalhes em `docs/relatorio-dos-caminhos.md`.
+
 **e) Pegar URL + anon key** (Project Settings > API) para as variáveis abaixo.
 
 **f) Deploy no Vercel:** importe o repositório (Root Directory: `Site caldemat`, framework Vite), configure as variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (usadas no build; não coloque segredos no código) e faça o deploy. Teste em `<url>/app/login`.

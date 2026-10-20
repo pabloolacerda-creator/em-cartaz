@@ -7,6 +7,7 @@ import Materiais from './app/materiais/MateriaisPage'
 import Estoque from './app/estoque/EstoquePage'
 import Clientes from './app/clientes/ClientesPage'
 import Pedidos from './app/pedidos/PedidosPage'
+import RequireModulo from './app/RequireModulo'
 import Funcionarios from './app/funcionarios/FuncionariosPage'
 
 const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel Caldemat</h1>
@@ -24,10 +25,10 @@ export const router = createBrowserRouter(
       ),
       children: [
         { index: true, element: <Inicio /> },
-        { path: 'materiais', element: <Materiais /> },
-        { path: 'estoque', element: <Estoque /> },
-        { path: 'clientes', element: <Clientes /> },
-        { path: 'pedidos', element: <Pedidos /> },
+        { path: 'materiais', element: <RequireModulo modulo="materia_prima"><Materiais /></RequireModulo> },
+        { path: 'estoque', element: <RequireModulo modulo="estoque"><Estoque /></RequireModulo> },
+        { path: 'clientes', element: <RequireModulo modulo="clientes"><Clientes /></RequireModulo> },
+        { path: 'pedidos', element: <RequireModulo modulo="pedidos"><Pedidos /></RequireModulo> },
         { path: 'funcionarios', element: <Funcionarios /> },
       ],
     },

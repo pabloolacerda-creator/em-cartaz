@@ -45,3 +45,4 @@ async function chamar(body: Record<string, unknown>): Promise<void> {
 export const criarFuncionario = (a: NovoFuncionario) => chamar({ acao: 'criar', ...a })
 export const resetarSenha = (id: string, nova: string) => chamar({ acao: 'resetar_senha', id, nova_senha: nova })
 export const inativarFuncionario = (id: string) => chamar({ acao: 'inativar', id })
+export const ativarFuncionario = (id: string) => chamar({ acao: 'ativar', id })

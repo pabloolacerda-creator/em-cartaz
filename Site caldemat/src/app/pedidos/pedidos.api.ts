@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { usuarioAtualId } from '../../lib/usuarioAtual'
 import type { Pedido, PedidoItem } from '../../types'
 
 export type ItemInput = { descricao: string; quantidade: number; valor_unitario: number }
@@ -11,7 +12,7 @@ function unwrap<T>(r: { data: T; error: unknown }): T {
 
 export async function criarPedido(p: PedidoInput): Promise<{ id: string }> {
   const ped = unwrap(
-    await supabase.from('pedidos').insert({ cliente_id: p.cliente_id, obs: p.obs ?? null }).select().single(),
+    await supabase.from('pedidos').insert({ cliente_id: p.cliente_id, obs: p.obs ?? null, usuario_id: await usuarioAtualId() }).select().single(),
   ) as Pedido
   try {
     unwrap(await supabase.from('pedido_itens').insert(p.itens.map((i) => ({ pedido_id: ped.id, ...i }))))

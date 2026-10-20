@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { usePerfil } from '../RequireAuth'
 import type { Perfil } from '../../types'
 import { podeRemoverOuRebaixarAdmin, ERRO_ULTIMO_ADMIN } from '../../lib/adminGuard'
-import { listarFuncionarios, criarFuncionario, resetarSenha, inativarFuncionario, type Permissoes } from './funcionarios.api'
+import { listarFuncionarios, criarFuncionario, resetarSenha, inativarFuncionario, ativarFuncionario, type Permissoes } from './funcionarios.api'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 
@@ -106,6 +106,16 @@ function Gestao() {
     }
   }
 
+  async function ativar(p: Perfil) {
+    setErro(null)
+    try {
+      await ativarFuncionario(p.id)
+      await carregar()
+    } catch (err) {
+      setErro(msg(err))
+    }
+  }
+
   const campo = 'w-full rounded border border-gray-300 px-3 py-2'
 
   return (
@@ -177,8 +187,11 @@ function Gestao() {
                   <tr key={p.id} className="border-b">
                     <td className="py-2">{p.nome}</td>
                     <td>{p.is_admin ? 'Administrador' : 'Funcionário'}</td>
-                    <td>{p.ativo ? 'Ativo' : 'Inativo'}</td>
+                    <td>{p.ativo ? 'Ativo' : <span className="font-medium text-red-700">Inativo</span>}</td>
                     <td className="space-x-2 whitespace-nowrap text-right">
+                      {!p.ativo && (
+                        <button type="button" className="underline" onClick={() => ativar(p)}>Ativar</button>
+                      )}
                       {p.ativo && (
                         <>
                           <button type="button" className="underline" onClick={() => resetar(p)}>Resetar senha</button>

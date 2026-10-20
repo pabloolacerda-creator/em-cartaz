@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase'
+import { usuarioAtualId } from '../../lib/usuarioAtual'
 import type { Movimentacao } from '../../types'
 
 export type Saldo = { material_id: string; nome: string; unidade: string; saldo: number }
@@ -20,7 +21,7 @@ export async function listarSaldos(): Promise<Saldo[]> {
 
 // Não bloqueia saída maior que o saldo: o aviso é responsabilidade da UI.
 export async function registrarMovimentacao(m: MovimentacaoInput): Promise<Movimentacao> {
-  return unwrap(await supabase.from('movimentacoes_estoque').insert(m).select().single()) as Movimentacao
+  return unwrap(await supabase.from('movimentacoes_estoque').insert({ ...m, usuario_id: await usuarioAtualId() }).select().single()) as Movimentacao
 }
 
 export async function historicoPorMaterial(material_id: string): Promise<Movimentacao[]> {

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const from = vi.fn()
-vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a) } }))
+const getUser = vi.fn()
+vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) } } }))
 
 import { listarSaldos, registrarMovimentacao, historicoPorMaterial } from './estoque.api'
 
@@ -13,7 +14,11 @@ const thenable = (result: any) => {
 }
 
 describe('estoque.api', () => {
-  beforeEach(() => from.mockReset())
+  beforeEach(() => {
+    from.mockReset()
+    getUser.mockReset()
+    getUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+  })
 
   it('listarSaldos lê a view saldo_estoque ordenada por nome', async () => {
     const rows = [{ material_id: '1', nome: 'Aço', unidade: 'kg', saldo: 5 }]
@@ -31,7 +36,16 @@ describe('estoque.api', () => {
     const m = { material_id: '1', tipo: 'entrada' as const, quantidade: 10, obs: 'nota 1' }
     expect(await registrarMovimentacao(m)).toEqual(row)
     expect(from).toHaveBeenCalledWith('movimentacoes_estoque')
-    expect(q.insert).toHaveBeenCalledWith(m)
+    expect(q.insert).toHaveBeenCalledWith({ ...m, usuario_id: 'u1' })
+  })
+
+  it('usuario_id cai para null se a sessão falhar', async () => {
+    getUser.mockRejectedValue(new Error('x'))
+    const q = thenable({ data: {}, error: null })
+    from.mockReturnValue(q)
+    const m = { material_id: '1', tipo: 'entrada' as const, quantidade: 1 }
+    await registrarMovimentacao(m)
+    expect(q.insert).toHaveBeenCalledWith({ ...m, usuario_id: null })
   })
 
   it('saída maior que o saldo NÃO é rejeitada pela api (só insere)', async () => {

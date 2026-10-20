@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const from = vi.fn()
-vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a) } }))
+const getUser = vi.fn()
+vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) } } }))
 
 import { criarPedido, listarPedidos, obterPedido, editarPedido } from './pedidos.api'
 
@@ -20,7 +21,11 @@ const itens = [
 ]
 
 describe('pedidos.api', () => {
-  beforeEach(() => from.mockReset())
+  beforeEach(() => {
+    from.mockReset()
+    getUser.mockReset()
+    getUser.mockResolvedValue({ data: { user: { id: 'u1' } } })
+  })
 
   it('criarPedido insere o pedido e depois os itens com o novo pedido_id (valor numérico)', async () => {
     const qp = ok({ id: 'p1' })
@@ -28,7 +33,7 @@ describe('pedidos.api', () => {
     from.mockReturnValueOnce(qp).mockReturnValueOnce(qi)
     expect(await criarPedido({ cliente_id: 'c1', obs: null, itens })).toEqual({ id: 'p1' })
     expect(from).toHaveBeenNthCalledWith(1, 'pedidos')
-    expect(qp.insert).toHaveBeenCalledWith({ cliente_id: 'c1', obs: null })
+    expect(qp.insert).toHaveBeenCalledWith({ cliente_id: 'c1', obs: null, usuario_id: 'u1' })
     expect(from).toHaveBeenNthCalledWith(2, 'pedido_itens')
     expect(qi.insert).toHaveBeenCalledWith([
       { pedido_id: 'p1', descricao: 'Cimento', quantidade: 2, valor_unitario: 1234.56 },

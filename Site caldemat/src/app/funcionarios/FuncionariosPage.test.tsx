@@ -6,6 +6,7 @@ const api = vi.hoisted(() => ({
   criarFuncionario: vi.fn(),
   resetarSenha: vi.fn(),
   inativarFuncionario: vi.fn(),
+  ativarFuncionario: vi.fn(),
 }))
 vi.mock('./funcionarios.api', () => api)
 const perfilMock = vi.hoisted(() => ({ atual: { is_admin: true } as any }))
@@ -73,6 +74,18 @@ describe('FuncionariosPage', () => {
     render(<FuncionariosPage />)
     await screen.findByText('Outro')
     screen.getAllByRole('button', { name: /inativar/i }).forEach((b) => expect(b).not.toBeDisabled())
+  })
+
+  it('funcionário inativo aparece marcado e Ativar chama a api e recarrega', async () => {
+    const inativo = { ...joao, id: 'j2', nome: 'Zeca', ativo: false }
+    api.listarFuncionarios.mockResolvedValue([admin, inativo])
+    api.ativarFuncionario.mockResolvedValue(undefined)
+    render(<FuncionariosPage />)
+    await screen.findByText('Zeca')
+    expect(screen.getByText('Inativo')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Ativar' }))
+    await waitFor(() => expect(api.ativarFuncionario).toHaveBeenCalledWith('j2'))
+    await waitFor(() => expect(api.listarFuncionarios).toHaveBeenCalledTimes(2))
   })
 
   it('mostra erro e esconde "vazio" quando listar falha', async () => {
