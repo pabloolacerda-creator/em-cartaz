@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const chain: any = {}
 const from = vi.fn()
 vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a) } }))
 
