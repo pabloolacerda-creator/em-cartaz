@@ -6,10 +6,8 @@ import Materiais from './app/materiais/MateriaisPage'
 import Estoque from './app/estoque/EstoquePage'
 import Clientes from './app/clientes/ClientesPage'
 import Pedidos from './app/pedidos/PedidosPage'
+import Funcionarios from './app/funcionarios/FuncionariosPage'
 
-// Placeholders: Tasks 7-11 substituem cada um por uma importação da página real.
-const EmBreve = ({ nome }: { nome: string }) => <h1 className="text-xl font-semibold">{nome} (em breve)</h1>
-const Funcionarios = () => <EmBreve nome="Funcionários" />
 const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel Caldemat</h1>
 
 // TEMPORÁRIO: o site institucional real (Task 12) substitui esta página.
