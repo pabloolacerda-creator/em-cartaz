@@ -4,10 +4,10 @@ import RequireAuth from './app/RequireAuth'
 import Dashboard from './app/Dashboard'
 import Materiais from './app/materiais/MateriaisPage'
 import Estoque from './app/estoque/EstoquePage'
+import Clientes from './app/clientes/ClientesPage'
 
 // Placeholders: Tasks 7-11 substituem cada um por uma importação da página real.
 const EmBreve = ({ nome }: { nome: string }) => <h1 className="text-xl font-semibold">{nome} (em breve)</h1>
-const Clientes = () => <EmBreve nome="Clientes" />
 const Pedidos = () => <EmBreve nome="Pedidos" />
 const Funcionarios = () => <EmBreve nome="Funcionários" />
 const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel Caldemat</h1>
