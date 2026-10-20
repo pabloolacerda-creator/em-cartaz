@@ -1,8 +1,8 @@
 // Edge Function (Deno) — gestão de usuários, somente admin.
 // Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (injetadas pelo Supabase; secret SERVICE_ROLE_KEY aceito como alternativa).
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-// Mesma regra pura usada pela página (src/lib/adminGuard.ts, sem dependências).
-import { podeRemoverOuRebaixarAdmin } from '../../../src/lib/adminGuard.ts'
+// Mesma regra pura usada pela página (_shared/adminGuard.ts, sem dependências).
+import { podeRemoverOuRebaixarAdmin } from '../_shared/adminGuard.ts'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
