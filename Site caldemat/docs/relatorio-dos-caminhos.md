@@ -27,33 +27,34 @@ Na tela de login, digite seu **usuário** (sem e-mail) e sua **senha**.
 
 ### Matéria-Prima
 Cadastro dos materiais usados na produção.
-1. Abra **Matéria-Prima** e clique em adicionar.
-2. Preencha nome, unidade e demais campos, e salve.
-3. Para corrigir, edite o item na lista.
+1. Abra **Matéria-Prima**. O formulário já fica visível na tela.
+2. Preencha **Nome**, **Unidade** e **Estoque mínimo** e clique em **Salvar**.
+3. Para tirar um material de uso, clique em **Inativar** na linha dele.
 
 ### Estoque
 Registra entradas e saídas de cada material e mostra o saldo.
 1. Abra **Estoque** e escolha o material.
 2. Escolha **Entrada** (chegou material) ou **Saída** (material usado/vendido), informe a quantidade e confirme.
-3. Se a **saída for maior que o saldo**, aparece um **aviso**. Você ainda pode registrar a saída mesmo assim (útil quando uma entrada não foi lançada a tempo); o saldo fica negativo até regularizar com uma entrada.
+3. Se a **saída for maior que o saldo**, aparece um **aviso** na tela e, ao registrar, uma janela de confirmação pergunta **"Deseja registrar a saída mesmo assim?"**. Você pode confirmar e a saída é registrada (útil quando uma entrada não foi lançada a tempo); o saldo fica negativo até regularizar com uma entrada.
 
 ### Clientes
-1. Abra **Clientes** e clique em novo.
-2. Preencha nome e contato e salve. Edite quando algo mudar.
+1. Abra **Clientes**.
+2. Preencha **Nome**, **Documento**, **Telefone**, **E-mail**, **Endereço** e **Observações** e clique em **Salvar**.
+3. Para tirar um cliente de uso, clique em **Inativar** na linha dele.
 
 ### Pedidos
-1. Abra **Pedidos** e clique em novo pedido.
+1. Abra **Pedidos**; o formulário chama-se **Novo pedido**.
 2. Escolha o cliente.
-3. Adicione os itens (produto, quantidade, preço). O **total em reais** é calculado sozinho.
+3. Clique em **Adicionar item** para cada item e preencha **Descrição**, **Quantidade** e **Valor unitário**. O **total em reais** é calculado sozinho.
 4. Salve. Os pedidos ficam listados com seus totais.
 
 Observação: Estoque e Pedidos são independentes; um pedido não baixa o estoque automaticamente.
 
 ### Funcionários (somente administrador)
-- **Criar funcionário:** em **Funcionários**, clique em novo, informe nome, usuário e uma senha inicial e **marque os acessos** (Matéria-Prima, Estoque, Clientes, Pedidos). Entregue usuário e senha à pessoa.
-- **Mudar acessos:** edite o funcionário e marque ou desmarque as abas.
-- **Resetar senha:** na linha do funcionário, use resetar senha, defina a nova senha e avise a pessoa.
-- **Desligar alguém:** inative o funcionário; ele deixa de conseguir entrar, sem perder o histórico.
+- **Criar funcionário:** em **Funcionários**, preencha o formulário (nome, usuário e senha inicial), **marque os acessos** (Matéria-Prima, Estoque, Clientes, Pedidos) e clique em **Cadastrar**. Entregue usuário e senha à pessoa.
+- **Atenção:** os acessos são escolhidos **somente na criação**. Para mudar o acesso de alguém, **inative** o funcionário e **crie um novo login** com os acessos desejados.
+- **Resetar senha:** na linha do funcionário, clique em **Resetar senha**, defina a nova senha e avise a pessoa.
+- **Desligar alguém:** clique em **Inativar**; ele deixa de conseguir entrar, sem perder o histórico.
 
 ## 5. Onde ficam os dados
 

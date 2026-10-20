@@ -33,9 +33,9 @@ npm run build   # build de produção (dist/)
 **c) Publicar a Edge Function:**
 ```bash
 supabase functions deploy admin-users
-supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<service_role key>
+supabase secrets set SERVICE_ROLE_KEY=<service_role key>
 ```
-A service role key fica em Project Settings > API. Nunca a coloque no front-end nem no Vercel. `SUPABASE_URL` e `SUPABASE_ANON_KEY` já são injetadas pelo Supabase nas Edge Functions.
+O Supabase rejeita nomes de secret que começam com `SUPABASE_`, por isso o nome é `SERVICE_ROLE_KEY` (a função já o usa como alternativa). A chave de service role pode já ser injetada pela plataforma; este comando só é necessário se a função não conseguir lê-la. A chave fica em Project Settings > API. Nunca a coloque no front-end nem no Vercel. `SUPABASE_URL` e `SUPABASE_ANON_KEY` já são injetadas pelo Supabase nas Edge Functions.
 
 **d) Semear o primeiro admin:** em Authentication > Users crie `admin@caldemat.local` com senha (Auto Confirm); depois rode `supabase/seed_admin.sql` no SQL Editor (usa o id do usuário do Auth como `perfis.id` e marca `is_admin` e todos os `pode_*`).
 
