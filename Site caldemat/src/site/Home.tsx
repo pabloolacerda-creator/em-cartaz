@@ -44,7 +44,12 @@ export default function Home() {
           </div>
         </div>
         <div className="flex justify-center">
-          <img src="/logo-escuro.png" alt="Logotipo Caldemat" className="w-64 drop-shadow-2xl sm:w-80 md:w-full md:max-w-sm" />
+          <img
+            src="/fotos/banner-principal.webp"
+            alt="Tanques e caixas d’água metálicas fabricados pela Caldemat"
+            className="w-full rounded-xl object-cover shadow-2xl ring-1 ring-white/10"
+            loading="eager"
+          />
         </div>
       </div>
       <dl className="relative border-t border-zinc-700 bg-zinc-950/60">

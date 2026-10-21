@@ -1,7 +1,7 @@
 const PRODUTOS = [
-  { nome: 'Tanques aéreos', desc: 'Armazenamento seguro, inclusive para combustível, com fabricação sob medida.', n: '01' },
-  { nome: 'Tanques ovais agrícolas', desc: 'Formato oval pensado para o transporte e a operação no campo.', n: '02' },
-  { nome: 'Caixas d’água metálicas', desc: 'Reservatórios metálicos robustos para fazendas, indústrias e obras.', n: '03' },
+  { nome: 'Tanques aéreos', desc: 'Armazenamento seguro, inclusive para combustível, com fabricação sob medida.', foto: '/fotos/tanque-aereo.webp' },
+  { nome: 'Tanques ovais agrícolas', desc: 'Formato oval pensado para o transporte e a operação no campo.', foto: '/fotos/tanque-oval.webp' },
+  { nome: 'Caixas d’água metálicas', desc: 'Reservatórios metálicos robustos para fazendas, indústrias e obras.', foto: '/fotos/caixas-dagua.webp' },
 ]
 
 export default function Produtos() {
@@ -18,8 +18,8 @@ export default function Produtos() {
               key={p.nome}
               className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-zinc-200 transition hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className="relative flex h-36 items-end bg-zinc-800 p-4" aria-hidden="true">
-                <span className="text-5xl font-extrabold text-zinc-600">{p.n}</span>
+              <div className="relative h-48 overflow-hidden bg-zinc-800">
+                <img src={p.foto} alt={p.nome} loading="lazy" className="h-full w-full object-cover transition duration-300 hover:scale-105" />
                 <div className="absolute inset-x-0 bottom-0 h-1 bg-brand" />
               </div>
               <div className="p-5">

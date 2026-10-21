@@ -41,4 +41,24 @@ describe('Site institucional', () => {
     expect(within(rodape).getByText('(65) 99359-7968')).toBeInTheDocument()
     expect(within(rodape).getByText('@caldemat.ind')).toBeInTheDocument()
   })
+
+  it('cada card de produto mostra sua foto', () => {
+    setup()
+    const produtos = screen.getByRole('region', { name: 'Produtos' })
+    const esperado: [string, string][] = [
+      ['Tanques aéreos', 'tanque-aereo'],
+      ['Tanques ovais agrícolas', 'tanque-oval'],
+      ['Caixas d’água metálicas', 'caixas-dagua'],
+    ]
+    for (const [alt, arquivo] of esperado) {
+      const img = within(produtos).getByRole('img', { name: alt })
+      expect(img.getAttribute('src')).toContain(`/fotos/${arquivo}`)
+    }
+  })
+
+  it('o topo usa o banner principal', () => {
+    setup()
+    const temBanner = screen.getAllByRole('img').some((i) => (i.getAttribute('src') ?? '').includes('banner-principal'))
+    expect(temBanner).toBe(true)
+  })
 })
