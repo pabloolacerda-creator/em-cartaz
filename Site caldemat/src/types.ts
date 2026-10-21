@@ -70,7 +70,15 @@ export type Pedido = {
   usuario_id: string | null
   status?: StatusPedido
   faturado_em?: string | null
+  // Informações adicionais (bloco 3)
+  prazo_entrega?: string | null
+  forma_pagamento?: string | null
+  // Dados do cliente (bloco 1) — vindos do cadastro de clientes via join
   cliente_nome?: string | null
+  cliente_documento?: string | null
+  cliente_endereco?: string | null
+  cliente_telefone?: string | null
+  cliente_email?: string | null
 }
 
 export type PedidoItem = {
@@ -79,4 +87,5 @@ export type PedidoItem = {
   descricao: string
   quantidade: number
   valor_unitario: number
+  obs?: string | null
 }

@@ -135,4 +135,41 @@ describe('PedidosPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/falhou/)
     expect(screen.getByRole('button', { name: /salvar pedido/i })).toBeEnabled()
   })
+
+  it('mostra os 3 blocos (cliente, produtos e serviços, informações adicionais)', async () => {
+    await pronto()
+    expect(screen.getByText(/informações do cliente/i)).toBeInTheDocument()
+    expect(screen.getByText(/produtos e serviços/i)).toBeInTheDocument()
+    expect(screen.getByText(/informações adicionais/i)).toBeInTheDocument()
+  })
+
+  it('ao escolher o cliente, exibe CNPJ/CPF e endereço vindos do cadastro', async () => {
+    cli.listarClientes.mockResolvedValue([
+      { id: 'c1', nome: 'Ana', documento: '12.345.678/0001-90', endereco: 'Rua X, 10', telefone: '(65) 99999-0000', ativo: true },
+    ])
+    renderPage()
+    await screen.findByRole('option', { name: 'Ana' })
+    fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
+    expect(screen.getByText('12.345.678/0001-90')).toBeInTheDocument()
+    expect(screen.getByText('Rua X, 10')).toBeInTheDocument()
+  })
+
+  it('envia prazo de entrega, forma de pagamento e obs do item quando preenchidos', async () => {
+    api.criarPedido.mockResolvedValue({ id: 'p9' })
+    await pronto()
+    fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
+    setItem(0, 'Tanque', '1', '100,00')
+    fireEvent.change(screen.getByLabelText('Observação do item 1'), { target: { value: 'inox 304' } })
+    fireEvent.change(screen.getByLabelText(/prazo de entrega/i), { target: { value: '30 dias' } })
+    fireEvent.change(screen.getByLabelText(/formas de pagamento/i), { target: { value: 'Pix' } })
+    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    await waitFor(() => expect(api.criarPedido).toHaveBeenCalledTimes(1))
+    expect(api.criarPedido).toHaveBeenCalledWith({
+      cliente_id: 'c1',
+      obs: null,
+      prazo_entrega: '30 dias',
+      forma_pagamento: 'Pix',
+      itens: [{ descricao: 'Tanque', quantidade: 1, valor_unitario: 100, obs: 'inox 304' }],
+    })
+  })
 })

@@ -2,10 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cabeçalho institucional do pedido: oculto na tela, visível só na impressão. */
+.print-only {
+  display: none;
+}
+
 /* Impressão: esconde a navegação lateral e elementos marcados com .no-print. */
 @media print {
   aside,
   .no-print {
     display: none !important;
+  }
+  .print-only {
+    display: flex !important;
   }
 }

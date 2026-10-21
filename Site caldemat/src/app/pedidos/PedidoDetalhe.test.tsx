@@ -68,4 +68,27 @@ describe('PedidoDetalhe', () => {
     }
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeInTheDocument()
   })
+
+  it('mostra os 3 blocos, obs do item e o cabeçalho de impressão da empresa', async () => {
+    api.obterPedido.mockResolvedValue({
+      pedido: {
+        id: 'p1', cliente_id: 'c1', data: '2026-10-18T10:20:00Z', obs: 'Entregar na obra', usuario_id: null,
+        status: 'emitido', cliente_nome: 'Ana', cliente_documento: '12.345.678/0001-90',
+        cliente_endereco: 'Rua X, 10', cliente_telefone: '(65) 99999-0000', cliente_email: 'ana@ex.com',
+        prazo_entrega: '30 dias', forma_pagamento: 'Pix à vista',
+      },
+      itens: [{ id: 'i1', pedido_id: 'p1', descricao: 'Tanque', quantidade: 1, valor_unitario: 12500, obs: 'Inox 304' }],
+    })
+    abrir()
+    // Bloco 3
+    expect(await screen.findByText('30 dias')).toBeInTheDocument()
+    expect(screen.getByText('Pix à vista')).toBeInTheDocument()
+    // Bloco 1 (dados do cliente)
+    expect(screen.getByText('12.345.678/0001-90')).toBeInTheDocument()
+    // Bloco 2 (obs por item)
+    expect(screen.getByText('Inox 304')).toBeInTheDocument()
+    // Cabeçalho de impressão: CNPJ e slogan da Caldemat
+    expect(screen.getByText(/45\.970\.379\/0001-09/)).toBeInTheDocument()
+    expect(screen.getByText(/metalurgia/i)).toBeInTheDocument()
+  })
 })

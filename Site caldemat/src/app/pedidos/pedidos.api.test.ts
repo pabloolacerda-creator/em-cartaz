@@ -131,4 +131,41 @@ describe('pedidos.api', () => {
     from.mockReturnValueOnce(fail('e'))
     await expect(aprovarPedido('p1')).rejects.toMatchObject({ message: 'e' })
   })
+
+  it('criarPedido inclui prazo_entrega, forma_pagamento e obs do item quando informados', async () => {
+    const qp = ok({ id: 'p1' })
+    const qi = ok(null)
+    from.mockReturnValueOnce(qp).mockReturnValueOnce(qi)
+    await criarPedido({
+      cliente_id: 'c1',
+      obs: 'geral',
+      prazo_entrega: '30 dias',
+      forma_pagamento: 'Pix',
+      itens: [{ descricao: 'Tanque', quantidade: 1, valor_unitario: 100, obs: 'inox 304' }],
+    })
+    expect(qp.insert).toHaveBeenCalledWith({
+      cliente_id: 'c1',
+      obs: 'geral',
+      usuario_id: 'u1',
+      prazo_entrega: '30 dias',
+      forma_pagamento: 'Pix',
+    })
+    expect(qi.insert).toHaveBeenCalledWith([
+      { pedido_id: 'p1', descricao: 'Tanque', quantidade: 1, valor_unitario: 100, obs: 'inox 304' },
+    ])
+  })
+
+  it('obterPedido traz os dados do cliente (documento, endereço, contato)', async () => {
+    const ped = {
+      id: 'p1', cliente_id: 'c1', data: 'd', obs: null, usuario_id: null,
+      clientes: { nome: 'Ana', documento: '12.345.678/0001-90', endereco: 'Rua X, 10', telefone: '(65) 99', email: 'ana@ex.com' },
+    }
+    from.mockReturnValueOnce(ok(ped)).mockReturnValueOnce(ok([]))
+    const { pedido } = await obterPedido('p1')
+    expect(pedido.cliente_nome).toBe('Ana')
+    expect(pedido.cliente_documento).toBe('12.345.678/0001-90')
+    expect(pedido.cliente_endereco).toBe('Rua X, 10')
+    expect(pedido.cliente_telefone).toBe('(65) 99')
+    expect(pedido.cliente_email).toBe('ana@ex.com')
+  })
 })
