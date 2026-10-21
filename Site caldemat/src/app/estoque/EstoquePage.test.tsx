@@ -12,11 +12,11 @@ vi.mock('../materiais/materiais.api', () => mat)
 
 import EstoquePage from './EstoquePage'
 
-const aco = { id: '1', nome: 'Aço', unidade: 'kg', estoque_minimo: null, ativo: true }
-const cobre = { id: '2', nome: 'Cobre', unidade: 'kg', estoque_minimo: null, ativo: true }
+const aco = { id: '1', nome: 'Aço', unidade: 'Quilo(s)', estoque_minimo: null, ativo: true }
+const cobre = { id: '2', nome: 'Cobre', unidade: 'Quilo(s)', estoque_minimo: null, ativo: true }
 const saldos = [
-  { material_id: '1', nome: 'Aço', unidade: 'kg', saldo: 10 },
-  { material_id: '2', nome: 'Cobre', unidade: 'kg', saldo: -3 },
+  { material_id: '1', nome: 'Aço', unidade: 'Quilo(s)', saldo: 10 },
+  { material_id: '2', nome: 'Cobre', unidade: 'Quilo(s)', saldo: -3 },
 ]
 
 function preencher(material: string, tipo: string, qtd: string) {
@@ -61,7 +61,7 @@ describe('EstoquePage', () => {
     fireEvent.change(screen.getByLabelText(/obs/i), { target: { value: '  nota  ' } })
     fireEvent.click(screen.getByRole('button', { name: /registrar/i }))
     await waitFor(() =>
-      expect(api.registrarMovimentacao).toHaveBeenCalledWith({ material_id: '1', tipo: 'entrada', quantidade: 5, obs: 'nota' }),
+      expect(api.registrarMovimentacao).toHaveBeenCalledWith({ material_id: '1', tipo: 'entrada', quantidade: 5, unidade: 'Quilo(s)', obs: 'nota' }),
     )
     expect(await screen.findByRole('cell', { name: '15' })).toBeInTheDocument()
   })
@@ -87,7 +87,7 @@ describe('EstoquePage', () => {
     fireEvent.click(botao)
     expect(confirm).toHaveBeenCalled()
     await waitFor(() =>
-      expect(api.registrarMovimentacao).toHaveBeenCalledWith({ material_id: '1', tipo: 'saida', quantidade: 50, obs: null }),
+      expect(api.registrarMovimentacao).toHaveBeenCalledWith({ material_id: '1', tipo: 'saida', quantidade: 50, unidade: 'Quilo(s)', obs: null }),
     )
   })
 

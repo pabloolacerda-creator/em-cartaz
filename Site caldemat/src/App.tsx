@@ -3,10 +3,12 @@ import SitePublico from './site/SitePublico'
 import Login from './app/Login'
 import RequireAuth from './app/RequireAuth'
 import Dashboard from './app/Dashboard'
+import CadastroHome from './app/CadastroHome'
 import Materiais from './app/materiais/MateriaisPage'
 import Estoque from './app/estoque/EstoquePage'
 import Clientes from './app/clientes/ClientesPage'
 import Pedidos from './app/pedidos/PedidosPage'
+import PedidoDetalhe from './app/pedidos/PedidoDetalhe'
 import RequireModulo from './app/RequireModulo'
 import Funcionarios from './app/funcionarios/FuncionariosPage'
 
@@ -25,11 +27,13 @@ export const router = createBrowserRouter(
       ),
       children: [
         { index: true, element: <Inicio /> },
-        { path: 'materiais', element: <RequireModulo modulo="materia_prima"><Materiais /></RequireModulo> },
+        { path: 'cadastro', element: <CadastroHome /> },
+        { path: 'cadastro/materiais', element: <RequireModulo modulo="materia_prima"><Materiais /></RequireModulo> },
+        { path: 'cadastro/clientes', element: <RequireModulo modulo="clientes"><Clientes /></RequireModulo> },
+        { path: 'cadastro/funcionarios', element: <Funcionarios /> },
         { path: 'estoque', element: <RequireModulo modulo="estoque"><Estoque /></RequireModulo> },
-        { path: 'clientes', element: <RequireModulo modulo="clientes"><Clientes /></RequireModulo> },
         { path: 'pedidos', element: <RequireModulo modulo="pedidos"><Pedidos /></RequireModulo> },
-        { path: 'funcionarios', element: <Funcionarios /> },
+        { path: 'pedidos/:id', element: <RequireModulo modulo="pedidos"><PedidoDetalhe /></RequireModulo> },
       ],
     },
   ],

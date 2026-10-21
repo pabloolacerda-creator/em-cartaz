@@ -40,14 +40,28 @@ export async function listarPedidos(): Promise<(Pedido & { cliente_nome?: string
 
 export async function obterPedido(id: string): Promise<{ pedido: Pedido; itens: PedidoItem[] }> {
   const [p, i] = await Promise.all([
-    supabase.from('pedidos').select('*').eq('id', id).single(),
+    supabase.from('pedidos').select('*, clientes(nome)').eq('id', id).single(),
     supabase.from('pedido_itens').select('*').eq('pedido_id', id),
   ])
-  return { pedido: unwrap(p) as Pedido, itens: unwrap(i) as PedidoItem[] }
+  const { clientes, ...pedido } = unwrap(p) as Pedido & { clientes?: { nome: string } | null }
+  return { pedido: { ...pedido, cliente_nome: clientes?.nome }, itens: unwrap(i) as PedidoItem[] }
 }
 
 export async function editarPedido(id: string, p: PedidoInput): Promise<void> {
   unwrap(await supabase.from('pedidos').update({ cliente_id: p.cliente_id, obs: p.obs ?? null }).eq('id', id))
   unwrap(await supabase.from('pedido_itens').delete().eq('pedido_id', id))
   unwrap(await supabase.from('pedido_itens').insert(p.itens.map((i) => ({ pedido_id: id, ...i }))))
+}
+
+// Ciclo de status: emitido → aprovado/reprovado → faturado.
+export async function aprovarPedido(id: string): Promise<void> {
+  unwrap(await supabase.from('pedidos').update({ status: 'aprovado' }).eq('id', id))
+}
+
+export async function reprovarPedido(id: string): Promise<void> {
+  unwrap(await supabase.from('pedidos').update({ status: 'reprovado' }).eq('id', id))
+}
+
+export async function faturarPedido(id: string): Promise<void> {
+  unwrap(await supabase.from('pedidos').update({ status: 'faturado', faturado_em: new Date().toISOString() }).eq('id', id))
 }

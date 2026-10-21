@@ -13,6 +13,8 @@ const json = (status: number, corpo: unknown) =>
   new Response(JSON.stringify(corpo), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
 
 const PERMS = ['pode_materia_prima', 'pode_estoque', 'pode_clientes', 'pode_pedidos'] as const
+// Dados cadastrais opcionais do funcionário (gravados em perfis quando informados).
+const CADASTRAIS = ['cpf', 'telefone', 'cargo', 'data_admissao', 'email'] as const
 
 // deno-lint-ignore no-explicit-any
 type Admin = any
@@ -61,6 +63,12 @@ export async function handler(req: Request): Promise<Response> {
         if (!/^[a-z0-9._-]+$/.test(usuario) || senha.length < 6 || !nome) return json(400, { erro: 'dados_invalidos' })
         const flags: Record<string, boolean> = {}
         for (const k of PERMS) flags[k] = body.permissoes?.[k] === true
+        // Dados cadastrais informados (os demais ficam nulos).
+        const cadastrais: Record<string, string> = {}
+        for (const k of CADASTRAIS) {
+          const v = body[k]
+          if (typeof v === 'string' && v.trim() !== '') cadastrais[k] = v.trim()
+        }
 
         const { data: criado, error } = await admin.auth.admin.createUser({
           email: `${usuario}@caldemat.local`,
@@ -70,7 +78,7 @@ export async function handler(req: Request): Promise<Response> {
         if (error || !criado?.user) return json(400, { erro: 'falha_criar', detalhe: error?.message })
         const { error: ep } = await admin
           .from('perfis')
-          .upsert({ id: criado.user.id, nome, is_admin: body.is_admin === true, ativo: true, ...flags })
+          .upsert({ id: criado.user.id, nome, is_admin: body.is_admin === true, ativo: true, ...flags, ...cadastrais })
         if (ep) {
           await admin.auth.admin.deleteUser(criado.user.id) // não deixa usuário órfão sem perfil
           return json(500, { erro: 'falha_perfil', detalhe: ep.message })

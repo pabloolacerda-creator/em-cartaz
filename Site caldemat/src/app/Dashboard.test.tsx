@@ -40,10 +40,14 @@ describe('Dashboard nav por permissão', () => {
     expect(screen.getByText('HOME')).toBeInTheDocument()
   })
 
-  it('admin vê todas as abas', async () => {
+  it('admin vê Cadastro, Estoque e Pedidos (sem sublinks no menu)', async () => {
     renderDash({ ...base, is_admin: true })
-    for (const n of ['Matéria-Prima', 'Estoque', 'Clientes', 'Pedidos', 'Funcionários']) {
+    for (const n of ['Cadastro', 'Estoque', 'Pedidos']) {
       expect(await screen.findByRole('link', { name: n })).toBeInTheDocument()
+    }
+    // Os cadastros só aparecem na página Cadastro, não na barra.
+    for (const n of ['Matéria-Prima', 'Clientes', 'Funcionários']) {
+      expect(screen.queryByRole('link', { name: n })).not.toBeInTheDocument()
     }
   })
 

@@ -15,6 +15,12 @@ export type NovoFuncionario = {
   nome: string
   permissoes: Permissoes
   is_admin?: boolean
+  // Dados cadastrais (opcionais) — enviados ao backend quando preenchidos.
+  cpf?: string
+  telefone?: string
+  cargo?: string
+  data_admissao?: string
+  email?: string
 }
 
 export async function listarFuncionarios(): Promise<Perfil[]> {

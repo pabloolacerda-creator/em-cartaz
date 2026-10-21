@@ -7,6 +7,12 @@ export type Perfil = {
   pode_clientes: boolean
   pode_pedidos: boolean
   ativo: boolean
+  // Dados cadastrais (opcionais)
+  cpf?: string | null
+  telefone?: string | null
+  cargo?: string | null
+  data_admissao?: string | null
+  email?: string | null
 }
 
 export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'funcionarios'
@@ -17,6 +23,19 @@ export type Material = {
   unidade: string
   estoque_minimo: number | null
   ativo: boolean
+  // Número automático gerado pelo sistema (código sequencial)
+  codigo?: number | null
+  // Campos técnicos (opcionais)
+  forma?: string | null
+  norma_tecnica?: string | null
+  grau_liga?: string | null
+  espessura?: number | null
+  largura?: number | null
+  comprimento?: number | null
+  diametro_externo?: number | null
+  espessura_parede?: number | null
+  acabamento?: string | null
+  propriedades?: string | null
 }
 
 export type Movimentacao = {
@@ -27,6 +46,7 @@ export type Movimentacao = {
   data: string
   obs: string | null
   usuario_id: string | null
+  unidade?: string | null
 }
 
 export type Cliente = {
@@ -40,12 +60,17 @@ export type Cliente = {
   ativo: boolean
 }
 
+export type StatusPedido = 'emitido' | 'aprovado' | 'reprovado' | 'faturado'
+
 export type Pedido = {
   id: string
   cliente_id: string
   data: string
   obs: string | null
   usuario_id: string | null
+  status?: StatusPedido
+  faturado_em?: string | null
+  cliente_nome?: string | null
 }
 
 export type PedidoItem = {

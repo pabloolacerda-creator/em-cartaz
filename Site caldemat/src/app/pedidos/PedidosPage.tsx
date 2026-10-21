@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import type { Cliente, Pedido } from '../../types'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
 import { listarClientes } from '../clientes/clientes.api'
 import { listarPedidos, criarPedido } from './pedidos.api'
+import { STATUS, statusDe } from './status'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 
@@ -186,17 +188,28 @@ export default function PedidosPage() {
               <tr className="border-b">
                 <th className="py-2">Data</th>
                 <th>Cliente</th>
+                <th>Status</th>
                 <th className="text-right">Total</th>
+                <th><span className="sr-only">Ações</span></th>
               </tr>
             </thead>
             <tbody>
-              {filtrados.map((p) => (
-                <tr key={p.id} className="border-b">
-                  <td className="py-2">{dataBR(p.data)}</td>
-                  <td>{p.cliente_nome ?? '—'}</td>
-                  <td className="text-right">{formatMoedaBR(p.total)}</td>
-                </tr>
-              ))}
+              {filtrados.map((p) => {
+                const st = statusDe(p.status)
+                return (
+                  <tr key={p.id} className="border-b">
+                    <td className="py-2">{dataBR(p.data)}</td>
+                    <td>{p.cliente_nome ?? '—'}</td>
+                    <td>
+                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS[st].cls}`}>{STATUS[st].rotulo}</span>
+                    </td>
+                    <td className="text-right">{formatMoedaBR(p.total)}</td>
+                    <td className="text-right">
+                      <Link to={`/app/pedidos/${p.id}`} className="underline">Abrir</Link>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

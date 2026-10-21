@@ -14,7 +14,10 @@ const MODULOS: { chave: keyof Permissoes; rotulo: string }[] = [
 ]
 
 const PERMS_VAZIAS: Permissoes = { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false }
-const VAZIO = { usuario: '', senha: '', nome: '', is_admin: false, permissoes: PERMS_VAZIAS }
+const VAZIO = {
+  usuario: '', senha: '', nome: '', is_admin: false, permissoes: PERMS_VAZIAS,
+  cpf: '', telefone: '', cargo: '', data_admissao: '', email: '',
+}
 
 export default function FuncionariosPage() {
   const perfil = usePerfil()
@@ -66,7 +69,12 @@ function Gestao() {
     setErro(null)
     setSalvando(true)
     try {
-      await criarFuncionario({ usuario, senha: f.senha, nome, permissoes: f.permissoes, is_admin: f.is_admin })
+      const cadastrais: Record<string, string> = {}
+      for (const k of ['cpf', 'telefone', 'cargo', 'data_admissao', 'email'] as const) {
+        const v = f[k].trim()
+        if (v !== '') cadastrais[k] = v
+      }
+      await criarFuncionario({ usuario, senha: f.senha, nome, permissoes: f.permissoes, is_admin: f.is_admin, ...cadastrais })
       setF(VAZIO)
       await carregar()
     } catch (err) {
@@ -141,6 +149,26 @@ function Gestao() {
           <label htmlFor="fn-nome" className="block text-sm">Nome</label>
           <input id="fn-nome" className={campo} value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} />
         </div>
+        <div>
+          <label htmlFor="fn-cpf" className="block text-sm">CPF</label>
+          <input id="fn-cpf" className={campo} value={f.cpf} onChange={(e) => setF({ ...f, cpf: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="fn-tel" className="block text-sm">Telefone</label>
+          <input id="fn-tel" className={campo} value={f.telefone} onChange={(e) => setF({ ...f, telefone: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="fn-cargo" className="block text-sm">Cargo / função</label>
+          <input id="fn-cargo" className={campo} value={f.cargo} onChange={(e) => setF({ ...f, cargo: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="fn-adm" className="block text-sm">Data de admissão</label>
+          <input id="fn-adm" className={campo} type="date" value={f.data_admissao} onChange={(e) => setF({ ...f, data_admissao: e.target.value })} />
+        </div>
+        <div>
+          <label htmlFor="fn-email" className="block text-sm">E-mail</label>
+          <input id="fn-email" className={campo} type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+        </div>
         <fieldset className="flex flex-wrap gap-4 sm:col-span-3">
           <legend className="text-sm">Acesso aos módulos</legend>
           {MODULOS.map((m) => (
@@ -175,6 +203,7 @@ function Gestao() {
             <thead>
               <tr className="border-b">
                 <th className="py-2">Nome</th>
+                <th>Cargo</th>
                 <th>Perfil</th>
                 <th>Situação</th>
                 <th><span className="sr-only">Ações</span></th>
@@ -186,6 +215,7 @@ function Gestao() {
                 return (
                   <tr key={p.id} className="border-b">
                     <td className="py-2">{p.nome}</td>
+                    <td>{p.cargo ?? '—'}</td>
                     <td>{p.is_admin ? 'Administrador' : 'Funcionário'}</td>
                     <td>{p.ativo ? 'Ativo' : <span className="font-medium text-red-700">Inativo</span>}</td>
                     <td className="space-x-2 whitespace-nowrap text-right">

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 const api = vi.hoisted(() => ({ listarPedidos: vi.fn(), criarPedido: vi.fn() }))
 const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
@@ -8,6 +9,13 @@ vi.mock('../clientes/clientes.api', () => cli)
 
 import PedidosPage from './PedidosPage'
 
+const renderPage = () =>
+  render(
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <PedidosPage />
+    </MemoryRouter>,
+  )
+
 const ana = { id: 'c1', nome: 'Ana', ativo: true }
 const bia = { id: 'c2', nome: 'Bia', ativo: true }
 const ped = (o: any = {}) => ({ id: 'p1', cliente_id: 'c1', data: '2026-03-05', obs: null, usuario_id: null, cliente_nome: 'Ana', total: 1234.56, ...o })
@@ -15,7 +23,7 @@ const ped = (o: any = {}) => ({ id: 'p1', cliente_id: 'c1', data: '2026-03-05', 
 const norm = (s: string | null) => (s ?? '').replace(/\s/g, ' ')
 
 async function pronto() {
-  render(<PedidosPage />)
+  renderPage()
   await screen.findByRole('option', { name: 'Ana' })
 }
 const setItem = (i: number, d: string, q: string, v: string) => {
@@ -34,7 +42,7 @@ describe('PedidosPage', () => {
 
   it('lista pedidos com cliente, data e total formatado em R$', async () => {
     api.listarPedidos.mockResolvedValue([ped()])
-    render(<PedidosPage />)
+    renderPage()
     expect(screen.getByText(/carregando/i)).toBeInTheDocument()
     const row = (await screen.findByText('05/03/2026')).closest('tr')!
     expect(within(row).getByText('Ana')).toBeInTheDocument()
@@ -101,7 +109,7 @@ describe('PedidosPage', () => {
 
   it('filtra a lista por cliente e por data', async () => {
     api.listarPedidos.mockResolvedValue([ped(), ped({ id: 'p2', cliente_nome: 'Bia', data: '2026-04-10', total: 5 })])
-    render(<PedidosPage />)
+    renderPage()
     await screen.findByText('05/03/2026')
     fireEvent.change(screen.getByLabelText(/buscar/i), { target: { value: 'bia' } })
     expect(screen.queryByText('05/03/2026')).not.toBeInTheDocument()
@@ -113,7 +121,7 @@ describe('PedidosPage', () => {
 
   it('não mostra mensagem de vazio quando há erro de carga', async () => {
     api.listarPedidos.mockRejectedValue(new Error('boom'))
-    render(<PedidosPage />)
+    renderPage()
     expect(await screen.findByRole('alert')).toHaveTextContent(/boom/)
     expect(screen.queryByText(/nenhum pedido/i)).not.toBeInTheDocument()
   })

@@ -4,7 +4,7 @@ const from = vi.fn()
 const getUser = vi.fn()
 vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) } } }))
 
-import { criarPedido, listarPedidos, obterPedido, editarPedido } from './pedidos.api'
+import { criarPedido, listarPedidos, obterPedido, editarPedido, aprovarPedido, reprovarPedido, faturarPedido } from './pedidos.api'
 
 const thenable = (result: any) => {
   const o: any = {}
@@ -99,5 +99,36 @@ describe('pedidos.api', () => {
   it('editarPedido lança erro do supabase', async () => {
     from.mockReturnValueOnce(fail('e'))
     await expect(editarPedido('p1', { cliente_id: 'c1', itens })).rejects.toMatchObject({ message: 'e' })
+  })
+
+  it('aprovarPedido e reprovarPedido mudam o status', async () => {
+    const qa = ok(null)
+    from.mockReturnValueOnce(qa)
+    await aprovarPedido('p1')
+    expect(from).toHaveBeenCalledWith('pedidos')
+    expect(qa.update).toHaveBeenCalledWith({ status: 'aprovado' })
+    expect(qa.eq).toHaveBeenCalledWith('id', 'p1')
+
+    from.mockReset()
+    const qr = ok(null)
+    from.mockReturnValueOnce(qr)
+    await reprovarPedido('p2')
+    expect(qr.update).toHaveBeenCalledWith({ status: 'reprovado' })
+    expect(qr.eq).toHaveBeenCalledWith('id', 'p2')
+  })
+
+  it('faturarPedido marca faturado com data', async () => {
+    const q = ok(null)
+    from.mockReturnValueOnce(q)
+    await faturarPedido('p1')
+    const arg = q.update.mock.calls[0][0] as { status: string; faturado_em: string }
+    expect(arg.status).toBe('faturado')
+    expect(typeof arg.faturado_em).toBe('string')
+    expect(q.eq).toHaveBeenCalledWith('id', 'p1')
+  })
+
+  it('aprovarPedido lança erro do supabase', async () => {
+    from.mockReturnValueOnce(fail('e'))
+    await expect(aprovarPedido('p1')).rejects.toMatchObject({ message: 'e' })
   })
 })

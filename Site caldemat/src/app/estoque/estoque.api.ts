@@ -7,6 +7,7 @@ export type MovimentacaoInput = {
   material_id: string
   tipo: 'entrada' | 'saida'
   quantidade: number
+  unidade?: string | null
   obs?: string | null
 }
 

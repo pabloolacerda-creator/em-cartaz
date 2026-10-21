@@ -4,12 +4,18 @@ import { podeAcessar } from '../lib/permissions'
 import { sair } from '../lib/auth'
 import type { Modulo } from '../types'
 
-const ABAS: { modulo: Modulo; rotulo: string; to: string }[] = [
-  { modulo: 'materia_prima', rotulo: 'Matéria-Prima', to: '/app/materiais' },
+type Item = { modulo: Modulo; rotulo: string; to: string }
+
+// "Cadastro" agrupa os cadastros; Estoque e Pedidos são operação (itens soltos).
+const CADASTRO_SUBS: Item[] = [
+  { modulo: 'materia_prima', rotulo: 'Matéria-Prima', to: '/app/cadastro/materiais' },
+  { modulo: 'clientes', rotulo: 'Clientes', to: '/app/cadastro/clientes' },
+  { modulo: 'funcionarios', rotulo: 'Funcionários', to: '/app/cadastro/funcionarios' },
+]
+
+const OPERACAO: Item[] = [
   { modulo: 'estoque', rotulo: 'Estoque', to: '/app/estoque' },
-  { modulo: 'clientes', rotulo: 'Clientes', to: '/app/clientes' },
   { modulo: 'pedidos', rotulo: 'Pedidos', to: '/app/pedidos' },
-  { modulo: 'funcionarios', rotulo: 'Funcionários', to: '/app/funcionarios' },
 ]
 
 export default function Dashboard() {
@@ -20,6 +26,10 @@ export default function Dashboard() {
     await sair()
     navigate('/app/login', { replace: true })
   }
+
+  const cadastroSubs = CADASTRO_SUBS.filter((a) => podeAcessar(perfil, a.modulo))
+  const linkCls = ({ isActive }: { isActive: boolean }) =>
+    `whitespace-nowrap rounded px-3 py-2 text-sm ${isActive ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`
 
   return (
     <div className="min-h-screen bg-gray-50 md:flex">
@@ -38,14 +48,13 @@ export default function Dashboard() {
           </button>
         </div>
         <nav aria-label="Módulos" className="flex gap-1 overflow-x-auto px-2 pb-2 md:flex-col md:pb-4">
-          {ABAS.filter((a) => podeAcessar(perfil, a.modulo)).map((a) => (
-            <NavLink
-              key={a.modulo}
-              to={a.to}
-              className={({ isActive }) =>
-                `whitespace-nowrap rounded px-3 py-2 text-sm ${isActive ? 'bg-gray-900 text-white' : 'hover:bg-gray-100'}`
-              }
-            >
+          {cadastroSubs.length > 0 && (
+            <NavLink to="/app/cadastro" className={linkCls}>
+              Cadastro
+            </NavLink>
+          )}
+          {OPERACAO.filter((a) => podeAcessar(perfil, a.modulo)).map((a) => (
+            <NavLink key={a.modulo} to={a.to} className={linkCls}>
               {a.rotulo}
             </NavLink>
           ))}

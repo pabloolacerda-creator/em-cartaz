@@ -11,7 +11,7 @@ vi.mock('./materiais.api', () => api)
 
 import MateriaisPage from './MateriaisPage'
 
-const aco = { id: '1', nome: 'Aço', unidade: 'kg', estoque_minimo: 10, ativo: true }
+const aco = { id: '1', nome: 'Aço', unidade: 'Quilo(s)', estoque_minimo: 10, ativo: true }
 
 describe('MateriaisPage', () => {
   beforeEach(() => {
@@ -26,17 +26,17 @@ describe('MateriaisPage', () => {
   })
 
   it('cria material e atualiza a lista', async () => {
-    const cobre = { id: '2', nome: 'Cobre', unidade: 'kg', estoque_minimo: 3, ativo: true }
+    const cobre = { id: '2', nome: 'Cobre', unidade: 'Quilo(s)', estoque_minimo: 3, ativo: true }
     api.listarMateriais.mockResolvedValueOnce([aco]).mockResolvedValueOnce([aco, cobre])
     api.criarMaterial.mockResolvedValue(cobre)
     render(<MateriaisPage />)
     await screen.findByText('Aço')
     fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: 'Cobre' } })
-    fireEvent.change(screen.getByLabelText(/unidade/i), { target: { value: 'kg' } })
+    fireEvent.change(screen.getByLabelText(/unidade/i), { target: { value: 'Quilo(s)' } })
     fireEvent.change(screen.getByLabelText(/estoque mínimo/i), { target: { value: '3' } })
     fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
     await waitFor(() =>
-      expect(api.criarMaterial).toHaveBeenCalledWith({ nome: 'Cobre', unidade: 'kg', estoque_minimo: 3 }),
+      expect(api.criarMaterial).toHaveBeenCalledWith({ nome: 'Cobre', unidade: 'Quilo(s)', estoque_minimo: 3 }),
     )
     expect(await screen.findByText('Cobre')).toBeInTheDocument()
   })
@@ -58,7 +58,7 @@ describe('MateriaisPage', () => {
     fireEvent.change(nome, { target: { value: 'Aço 2' } })
     fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
     await waitFor(() =>
-      expect(api.editarMaterial).toHaveBeenCalledWith('1', { nome: 'Aço 2', unidade: 'kg', estoque_minimo: 10 }),
+      expect(api.editarMaterial).toHaveBeenCalledWith('1', { nome: 'Aço 2', unidade: 'Quilo(s)', estoque_minimo: 10 }),
     )
   })
 

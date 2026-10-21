@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Impressão: esconde a navegação lateral e elementos marcados com .no-print. */
+@media print {
+  aside,
+  .no-print {
+    display: none !important;
+  }
+}

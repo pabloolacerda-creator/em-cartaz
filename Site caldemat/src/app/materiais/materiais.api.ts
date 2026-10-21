@@ -1,7 +1,21 @@
 import { supabase } from '../../lib/supabase'
 import type { Material } from '../../types'
 
-export type MaterialInput = { nome: string; unidade: string; estoque_minimo?: number | null }
+export type MaterialInput = {
+  nome: string
+  unidade: string
+  estoque_minimo?: number | null
+  forma?: string | null
+  norma_tecnica?: string | null
+  grau_liga?: string | null
+  espessura?: number | null
+  largura?: number | null
+  comprimento?: number | null
+  diametro_externo?: number | null
+  espessura_parede?: number | null
+  acabamento?: string | null
+  propriedades?: string | null
+}
 
 function unwrap<T>(r: { data: T; error: unknown }): T {
   if (r.error) throw r.error
