@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Pedido, PedidoItem } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
@@ -114,30 +114,40 @@ export default function PedidoDetalhe() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b">
-                <th className="py-2">Descrição</th>
-                <th className="text-right">Qtd</th>
-                <th className="text-right">Valor unit.</th>
-                <th className="text-right">Total</th>
-                <th>Obs</th>
+              <tr className="border-b text-sm text-gray-500">
+                <th className="py-2 pr-3 font-medium">Descrição</th>
+                <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Qtd</th>
+                <th className="whitespace-nowrap px-3 py-2 text-right font-medium">Valor unit.</th>
+                <th className="whitespace-nowrap py-2 pl-3 text-right font-medium">Total</th>
               </tr>
             </thead>
             <tbody>
-              {itens.map((i) => (
-                <tr key={i.id} className="border-b align-top">
-                  <td className="py-2">{i.descricao}</td>
-                  <td className="text-right">{i.quantidade.toLocaleString('pt-BR')}</td>
-                  <td className="text-right">{formatMoedaBR(i.valor_unitario)}</td>
-                  <td className="text-right">{formatMoedaBR(Math.round(i.quantidade * i.valor_unitario * 100) / 100)}</td>
-                  <td>{i.obs || ''}</td>
-                </tr>
-              ))}
+              {itens.map((i) => {
+                const totalLinha = Math.round(i.quantidade * i.valor_unitario * 100) / 100
+                return (
+                  <Fragment key={i.id}>
+                    <tr className={i.obs ? '' : 'border-b'}>
+                      <td className="py-2 pr-3 align-top font-medium">{i.descricao}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right align-top">{i.quantidade.toLocaleString('pt-BR')}</td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right align-top">{formatMoedaBR(i.valor_unitario)}</td>
+                      <td className="whitespace-nowrap py-2 pl-3 text-right align-top">{formatMoedaBR(totalLinha)}</td>
+                    </tr>
+                    {i.obs && (
+                      <tr className="border-b">
+                        <td colSpan={4} className="pb-3 pr-3 text-sm text-gray-600">
+                          <span className="font-medium text-gray-500">Obs: </span>
+                          <span>{i.obs}</span>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                )
+              })}
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={3} className="py-2 text-right font-medium">Total do pedido</td>
-                <td className="text-right font-semibold">{formatMoedaBR(total)}</td>
-                <td></td>
+                <td colSpan={3} className="whitespace-nowrap py-3 pr-3 text-right font-medium">Total do pedido</td>
+                <td className="whitespace-nowrap py-3 pl-3 text-right font-semibold">{formatMoedaBR(total)}</td>
               </tr>
             </tfoot>
           </table>
