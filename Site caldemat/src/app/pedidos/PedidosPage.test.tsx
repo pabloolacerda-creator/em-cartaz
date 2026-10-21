@@ -74,9 +74,11 @@ describe('PedidosPage', () => {
     expect(api.criarPedido).toHaveBeenCalledWith({
       cliente_id: 'c2',
       obs: null,
+      prazo_entrega: null,
+      forma_pagamento: null,
       itens: [
-        { descricao: 'Cimento', quantidade: 2, valor_unitario: 1234.56 },
-        { descricao: 'Areia', quantidade: 1, valor_unitario: 10 },
+        { descricao: 'Cimento', quantidade: 2, valor_unitario: 1234.56, obs: null },
+        { descricao: 'Areia', quantidade: 1, valor_unitario: 10, obs: null },
       ],
     })
     await waitFor(() => expect(api.listarPedidos).toHaveBeenCalledTimes(2))

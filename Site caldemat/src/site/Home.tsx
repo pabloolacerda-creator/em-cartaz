@@ -9,14 +9,17 @@ const NUMEROS = [
 export default function Home() {
   return (
     <section id="topo" aria-label="Início" className="relative overflow-hidden bg-zinc-900 pt-28 text-white md:pt-24">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 opacity-[0.07]"
-        style={{ backgroundImage: 'repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 14px)' }}
+      <img
+        src="/fotos/banner-principal.webp"
+        alt="Tanques e caixas d’água metálicas fabricados pela Caldemat"
+        className="absolute inset-0 h-full w-full object-cover"
+        loading="eager"
       />
-      <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand/30 blur-3xl" aria-hidden="true" />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-16 md:grid-cols-[1.2fr_1fr] md:pb-24 md:pt-12">
-        <div>
+      {/* Gradiente escuro por cima da foto, para o texto ficar legível */}
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/40" />
+      <div aria-hidden="true" className="absolute inset-0 bg-zinc-950/40 md:bg-transparent" />
+      <div className="relative mx-auto max-w-6xl px-4 pb-16 md:pb-24 md:pt-12">
+        <div className="max-w-2xl">
           <p className="mb-4 inline-block border-l-4 border-brand pl-3 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">
             Indústria Metalúrgica · Várzea Grande/MT
           </p>
@@ -42,14 +45,6 @@ export default function Home() {
               Ver produtos
             </a>
           </div>
-        </div>
-        <div className="flex justify-center">
-          <img
-            src="/fotos/banner-principal.webp"
-            alt="Tanques e caixas d’água metálicas fabricados pela Caldemat"
-            className="w-full rounded-xl object-cover shadow-2xl ring-1 ring-white/10"
-            loading="eager"
-          />
         </div>
       </div>
       <dl className="relative border-t border-zinc-700 bg-zinc-950/60">

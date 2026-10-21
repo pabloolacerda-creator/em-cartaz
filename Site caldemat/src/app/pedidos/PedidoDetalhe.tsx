@@ -167,6 +167,7 @@ export default function PedidoDetalhe() {
         {status === 'aprovado' && (
           <button type="button" disabled={acaoEmCurso} onClick={() => executar(faturarPedido)} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">Faturar</button>
         )}
+        <Link to={`/app/pedidos/${pedido.id}/editar`} className="rounded border px-4 py-2">Editar</Link>
         <button type="button" onClick={() => window.print()} className="rounded border px-4 py-2">Imprimir</button>
         <Link to="/app/pedidos" className="rounded border px-4 py-2">Voltar</Link>
       </div>

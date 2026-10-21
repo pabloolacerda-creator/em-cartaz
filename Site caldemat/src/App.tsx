@@ -9,6 +9,7 @@ import Estoque from './app/estoque/EstoquePage'
 import Clientes from './app/clientes/ClientesPage'
 import Pedidos from './app/pedidos/PedidosPage'
 import PedidoDetalhe from './app/pedidos/PedidoDetalhe'
+import PedidoEditar from './app/pedidos/PedidoEditar'
 import RequireModulo from './app/RequireModulo'
 import Funcionarios from './app/funcionarios/FuncionariosPage'
 
@@ -34,6 +35,7 @@ export const router = createBrowserRouter(
         { path: 'estoque', element: <RequireModulo modulo="estoque"><Estoque /></RequireModulo> },
         { path: 'pedidos', element: <RequireModulo modulo="pedidos"><Pedidos /></RequireModulo> },
         { path: 'pedidos/:id', element: <RequireModulo modulo="pedidos"><PedidoDetalhe /></RequireModulo> },
+        { path: 'pedidos/:id/editar', element: <RequireModulo modulo="pedidos"><PedidoEditar /></RequireModulo> },
       ],
     },
   ],
