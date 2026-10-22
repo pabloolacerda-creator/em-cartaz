@@ -9,6 +9,8 @@ const api = vi.hoisted(() => ({
   faturarPedido: vi.fn(),
 }))
 vi.mock('./pedidos.api', () => api)
+const fin = vi.hoisted(() => ({ gerarContaReceber: vi.fn() }))
+vi.mock('../financeiro/financeiro.api', () => fin)
 
 import PedidoDetalhe from './PedidoDetalhe'
 
@@ -67,6 +69,18 @@ describe('PedidoDetalhe', () => {
       expect(screen.queryByRole('button', { name: n })).toBeNull()
     }
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeInTheDocument()
+  })
+
+  it('Gerar conta a receber chama a api com os dados do pedido', async () => {
+    fin.gerarContaReceber.mockResolvedValue(undefined)
+    api.obterPedido.mockResolvedValue({
+      pedido: { id: 'p1', cliente_id: 'c1', data: '2026-10-18T10:20:00Z', obs: null, usuario_id: null, status: 'emitido', numero: 7, cliente_nome: 'Ana' },
+      itens: [{ id: 'i1', pedido_id: 'p1', descricao: 'Tanque', quantidade: 1, valor_unitario: 100 }],
+    })
+    abrir()
+    fireEvent.click(await screen.findByRole('button', { name: /gerar conta a receber/i }))
+    await waitFor(() => expect(fin.gerarContaReceber).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1', cliente_id: 'c1', numero: 7, total: 100 })))
+    expect(await screen.findByText(/conta a receber gerada/i)).toBeInTheDocument()
   })
 
   it('mostra número do pedido e da fatura e um item de produto com medidas', async () => {

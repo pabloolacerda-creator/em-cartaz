@@ -9,6 +9,7 @@ export function podeAcessar(perfil: Perfil, modulo: Modulo): boolean {
     case 'clientes': return perfil.pode_clientes
     case 'pedidos': return perfil.pode_pedidos
     case 'produtos': return perfil.pode_produtos
+    case 'financeiro': return perfil.pode_financeiro
     default: return false
   }
 }

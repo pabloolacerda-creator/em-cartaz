@@ -11,7 +11,7 @@ import Dashboard from './Dashboard'
 
 const base: Perfil = {
   id: '1', nome: 'Fulano', is_admin: false, pode_materia_prima: false,
-  pode_estoque: false, pode_clientes: false, pode_pedidos: false, pode_produtos: false, ativo: true,
+  pode_estoque: false, pode_clientes: false, pode_pedidos: false, pode_produtos: false, pode_financeiro: false, ativo: true,
 }
 
 function renderDash(perfil: Perfil) {

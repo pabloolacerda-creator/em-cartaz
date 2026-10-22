@@ -7,6 +7,7 @@ export type Perfil = {
   pode_clientes: boolean
   pode_pedidos: boolean
   pode_produtos: boolean
+  pode_financeiro: boolean
   ativo: boolean
   // Dados cadastrais (opcionais)
   cpf?: string | null
@@ -16,7 +17,35 @@ export type Perfil = {
   email?: string | null
 }
 
-export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'funcionarios'
+export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'financeiro' | 'funcionarios'
+
+export type ContaFinanceira = {
+  id: string
+  nome: string
+  tipo: 'banco' | 'caixa'
+  saldo_inicial: number
+  ativo: boolean
+  saldo?: number // vem da view saldo_contas
+}
+
+export type TipoLancamento = 'receita' | 'despesa'
+
+export type Lancamento = {
+  id: string
+  tipo: TipoLancamento
+  descricao: string
+  valor: number
+  vencimento: string
+  pago_em?: string | null
+  conta_id?: string | null
+  categoria?: string | null
+  fornecedor?: string | null
+  cliente_id?: string | null
+  pedido_id?: string | null
+  obs?: string | null
+  usuario_id?: string | null
+  created_at?: string
+}
 
 export type Produto = {
   id: string

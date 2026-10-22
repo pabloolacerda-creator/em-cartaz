@@ -11,6 +11,11 @@ import Produtos from './app/produtos/ProdutosPage'
 import Pedidos from './app/pedidos/PedidosPage'
 import PedidoDetalhe from './app/pedidos/PedidoDetalhe'
 import PedidoEditar from './app/pedidos/PedidoEditar'
+import FinanceiroLayout from './app/financeiro/FinanceiroLayout'
+import FinanceiroPainel from './app/financeiro/FinanceiroPainel'
+import Lancamentos from './app/financeiro/LancamentosPage'
+import Contas from './app/financeiro/ContasPage'
+import Fluxo from './app/financeiro/FluxoPage'
 import RequireModulo from './app/RequireModulo'
 import Funcionarios from './app/funcionarios/FuncionariosPage'
 
@@ -38,6 +43,16 @@ export const router = createBrowserRouter(
         { path: 'pedidos', element: <RequireModulo modulo="pedidos"><Pedidos /></RequireModulo> },
         { path: 'pedidos/:id', element: <RequireModulo modulo="pedidos"><PedidoDetalhe /></RequireModulo> },
         { path: 'pedidos/:id/editar', element: <RequireModulo modulo="pedidos"><PedidoEditar /></RequireModulo> },
+        {
+          path: 'financeiro',
+          element: <RequireModulo modulo="financeiro"><FinanceiroLayout /></RequireModulo>,
+          children: [
+            { index: true, element: <FinanceiroPainel /> },
+            { path: 'lancamentos', element: <Lancamentos /> },
+            { path: 'contas', element: <Contas /> },
+            { path: 'fluxo', element: <Fluxo /> },
+          ],
+        },
       ],
     },
   ],

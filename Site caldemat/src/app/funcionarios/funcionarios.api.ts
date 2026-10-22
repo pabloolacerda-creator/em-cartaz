@@ -8,6 +8,7 @@ export type Permissoes = {
   pode_clientes: boolean
   pode_pedidos: boolean
   pode_produtos: boolean
+  pode_financeiro: boolean
 }
 
 export type NovoFuncionario = {

@@ -14,7 +14,7 @@ vi.mock('../RequireAuth', () => ({ usePerfil: () => perfilMock.atual }))
 
 import FuncionariosPage from './FuncionariosPage'
 
-const base = { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false, pode_produtos: false, ativo: true }
+const base = { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false, pode_produtos: false, pode_financeiro: false, ativo: true }
 const admin = { ...base, id: 'a1', nome: 'Admin Unico', is_admin: true }
 const joao = { ...base, id: 'j1', nome: 'Joao', is_admin: false }
 
@@ -37,7 +37,7 @@ describe('FuncionariosPage', () => {
     api.listarFuncionarios.mockResolvedValue([admin, joao])
     render(<FuncionariosPage />)
     await screen.findByText('Joao')
-    for (const n of [/matéria-prima/i, /estoque/i, /clientes/i, /pedidos/i, /produtos\/serviços/i, /administrador/i]) {
+    for (const n of [/matéria-prima/i, /estoque/i, /clientes/i, /pedidos/i, /produtos\/serviços/i, /financeiro/i, /administrador/i]) {
       expect(screen.getByRole('checkbox', { name: n })).toBeInTheDocument()
     }
   })
@@ -55,7 +55,7 @@ describe('FuncionariosPage', () => {
     await waitFor(() => expect(api.criarFuncionario).toHaveBeenCalledTimes(1))
     expect(api.criarFuncionario).toHaveBeenCalledWith({
       usuario: 'Maria', senha: 'segredo1', nome: 'Maria S', is_admin: false,
-      permissoes: { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: true, pode_produtos: false },
+      permissoes: { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: true, pode_produtos: false, pode_financeiro: false },
     })
   })
 

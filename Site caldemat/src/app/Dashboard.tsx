@@ -17,6 +17,7 @@ const CADASTRO_SUBS: Item[] = [
 const OPERACAO: Item[] = [
   { modulo: 'estoque', rotulo: 'Estoque', to: '/app/estoque' },
   { modulo: 'pedidos', rotulo: 'Pedidos', to: '/app/pedidos' },
+  { modulo: 'financeiro', rotulo: 'Financeiro', to: '/app/financeiro' },
 ]
 
 export default function Dashboard() {

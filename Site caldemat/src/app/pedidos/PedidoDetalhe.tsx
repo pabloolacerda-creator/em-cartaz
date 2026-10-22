@@ -5,6 +5,7 @@ import { formatMoedaBR } from '../../lib/money'
 import { formatNumero } from '../../lib/numero'
 import { EMPRESA } from '../../lib/empresa'
 import { obterPedido, aprovarPedido, reprovarPedido, faturarPedido } from './pedidos.api'
+import { gerarContaReceber } from '../financeiro/financeiro.api'
 import { STATUS, statusDe } from './status'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
@@ -33,6 +34,7 @@ export default function PedidoDetalhe() {
   const [itens, setItens] = useState<PedidoItem[]>([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  const [aviso, setAviso] = useState<string | null>(null)
   const [acaoEmCurso, setAcaoEmCurso] = useState(false)
 
   const carregar = useCallback(async () => {
@@ -79,6 +81,22 @@ export default function PedidoDetalhe() {
   const status = statusDe(pedido.status)
   const total = itens.reduce((s, i) => s + Math.round(linhaTotal(i) * 100), 0) / 100
   const contato = [pedido.cliente_telefone, pedido.cliente_email].filter(Boolean).join(' · ')
+  const ped = pedido
+
+  async function gerarReceber() {
+    if (acaoEmCurso) return
+    setAcaoEmCurso(true)
+    setErro(null)
+    setAviso(null)
+    try {
+      await gerarContaReceber({ id: ped.id, cliente_id: ped.cliente_id, numero: ped.numero, total })
+      setAviso('Conta a receber gerada no Financeiro.')
+    } catch (e) {
+      setErro(msg(e))
+    } finally {
+      setAcaoEmCurso(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -99,6 +117,9 @@ export default function PedidoDetalhe() {
 
       {erro && (
         <p role="alert" className="rounded bg-red-100 px-3 py-2 text-red-800 no-print">{erro}</p>
+      )}
+      {aviso && (
+        <p role="status" className="rounded bg-green-100 px-3 py-2 text-green-800 no-print">{aviso}</p>
       )}
 
       {/* Bloco 1 — Informações do cliente */}
@@ -191,6 +212,7 @@ export default function PedidoDetalhe() {
           <button type="button" disabled={acaoEmCurso} onClick={() => executar(faturarPedido)} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">Faturar</button>
         )}
         <Link to={`/app/pedidos/${pedido.id}/editar`} className="rounded border px-4 py-2">Editar</Link>
+        <button type="button" disabled={acaoEmCurso} onClick={gerarReceber} className="rounded border px-4 py-2 disabled:opacity-50">Gerar conta a receber</button>
         <button type="button" onClick={() => window.print()} className="rounded border px-4 py-2">Imprimir</button>
         <Link to="/app/pedidos" className="rounded border px-4 py-2">Voltar</Link>
       </div>
