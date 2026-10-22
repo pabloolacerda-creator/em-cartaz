@@ -35,6 +35,7 @@ export default function LancamentosPage() {
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [fTipo, setFTipo] = useState<'' | 'receita' | 'despesa'>('')
   const [periodoPagto, setPeriodoPagto] = useState<Periodo>({ de: null, ate: null })
+  const [campoPeriodo, setCampoPeriodo] = useState<'vencimento' | 'pago_em'>('vencimento')
   const [ocultar, setOcultar] = useState(false)
 
   const carregar = useCallback(async () => {
@@ -111,10 +112,11 @@ export default function LancamentosPage() {
       if (filtro === 'receber' && !(l.tipo === 'receita' && !l.pago_em)) return false
       if (filtro === 'vencidos' && !(!l.pago_em && l.vencimento < hoje)) return false
       if (fTipo && l.tipo !== fTipo) return false
-      if ((periodoPagto.de || periodoPagto.ate) && !dentroDoPeriodo(l.pago_em, periodoPagto)) return false
+      const dataFiltro = campoPeriodo === 'pago_em' ? l.pago_em : l.vencimento
+      if ((periodoPagto.de || periodoPagto.ate) && !dentroDoPeriodo(dataFiltro, periodoPagto)) return false
       return true
     })
-  }, [itens, filtro, fTipo, periodoPagto])
+  }, [itens, filtro, fTipo, periodoPagto, campoPeriodo])
 
   const valorTxt = (v: number) => (ocultar ? '•••' : formatMoedaBR(v))
 
@@ -131,7 +133,7 @@ export default function LancamentosPage() {
 
   return (
     <div className="space-y-6">
-      <RelatorioCabecalho titulo="Relatório Financeiro — Lançamentos" subtitulo={periodoPagto.de || periodoPagto.ate ? 'Filtrado por período de pagamento' : undefined} />
+      <RelatorioCabecalho titulo="Relatório Financeiro — Lançamentos" subtitulo={periodoPagto.de || periodoPagto.ate ? `Período por ${campoPeriodo === 'pago_em' ? 'data de pagamento' : 'vencimento'}` : undefined} />
       {erro && <p role="alert" className="rounded bg-red-100 px-3 py-2 text-red-800 no-print">{erro}</p>}
 
       <form onSubmit={salvar} className="grid gap-3 no-print sm:grid-cols-3 sm:items-end">
@@ -198,7 +200,14 @@ export default function LancamentosPage() {
             </select>
           </div>
           <div>
-            <FiltroPeriodo label="Período do pagamento" value={periodoPagto} onChange={setPeriodoPagto} />
+            <label htmlFor="f-campo" className="block text-sm">Período por</label>
+            <select id="f-campo" className={campo} value={campoPeriodo} onChange={(e) => setCampoPeriodo(e.target.value as 'vencimento' | 'pago_em')}>
+              <option value="vencimento">Vencimento</option>
+              <option value="pago_em">Data de pagamento</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2">
+            <FiltroPeriodo label="Período" value={periodoPagto} onChange={setPeriodoPagto} />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
