@@ -82,15 +82,9 @@ export default function PedidoDetalhe() {
 
   return (
     <div className="space-y-6">
-      {/* Cabeçalho institucional — aparece apenas na impressão */}
-      <header className="print-only mb-4 flex items-center gap-4 border-b pb-4">
-        <img src={EMPRESA.logo} alt={EMPRESA.nome} className="h-16 w-auto" />
-        <div>
-          <div className="text-lg font-bold">{EMPRESA.nome}</div>
-          <div className="text-sm italic text-gray-600">{EMPRESA.slogan}</div>
-          <div className="text-xs text-gray-600">{EMPRESA.endereco} · CNPJ {EMPRESA.cnpj}</div>
-          <div className="text-xs text-gray-600">{EMPRESA.telefone} · {EMPRESA.email}</div>
-        </div>
+      {/* Papel timbrado — aparece apenas na impressão */}
+      <header className="print-only mb-4">
+        <img src="/timbrado.png" alt={EMPRESA.nome} className="w-full" />
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-3">

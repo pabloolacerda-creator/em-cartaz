@@ -18,6 +18,6 @@
     display: none !important;
   }
   .print-only {
-    display: flex !important;
+    display: block !important;
   }
 }

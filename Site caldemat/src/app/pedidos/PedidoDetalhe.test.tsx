@@ -106,8 +106,7 @@ describe('PedidoDetalhe', () => {
     expect(screen.getByText('12.345.678/0001-90')).toBeInTheDocument()
     // Bloco 2 (obs por item)
     expect(screen.getByText('Inox 304')).toBeInTheDocument()
-    // Cabeçalho de impressão: CNPJ e slogan da Caldemat
-    expect(screen.getByText(/45\.970\.379\/0001-09/)).toBeInTheDocument()
-    expect(screen.getByText(/metalurgia/i)).toBeInTheDocument()
+    // Cabeçalho de impressão: papel timbrado (imagem)
+    expect(screen.getAllByRole('img').some((i) => (i.getAttribute('src') ?? '').includes('timbrado'))).toBe(true)
   })
 })
