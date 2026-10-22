@@ -9,7 +9,7 @@ const api = vi.hoisted(() => ({
   faturarPedido: vi.fn(),
 }))
 vi.mock('./pedidos.api', () => api)
-const fin = vi.hoisted(() => ({ gerarContaReceber: vi.fn() }))
+const fin = vi.hoisted(() => ({ gerarContaReceber: vi.fn(), lancarRecebimentosPedido: vi.fn() }))
 vi.mock('../financeiro/financeiro.api', () => fin)
 
 import PedidoDetalhe from './PedidoDetalhe'
@@ -59,6 +59,18 @@ describe('PedidoDetalhe', () => {
     expect(screen.getByRole('button', { name: 'Faturar' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Aprovar' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Reprovar' })).toBeNull()
+  })
+
+  it('Faturar abre o diálogo e, ao confirmar, fatura e lança no financeiro', async () => {
+    api.obterPedido.mockResolvedValue(pedido('aprovado'))
+    api.faturarPedido.mockResolvedValue(undefined)
+    fin.lancarRecebimentosPedido.mockResolvedValue(undefined)
+    abrir()
+    fireEvent.click(await screen.findByRole('button', { name: 'Faturar' }))
+    expect(await screen.findByRole('dialog', { name: /faturamento/i })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /confirmar faturamento/i }))
+    await waitFor(() => expect(api.faturarPedido).toHaveBeenCalledWith('p1'))
+    await waitFor(() => expect(fin.lancarRecebimentosPedido).toHaveBeenCalled())
   })
 
   it('faturado não mostra ações de status (só Imprimir/Voltar)', async () => {

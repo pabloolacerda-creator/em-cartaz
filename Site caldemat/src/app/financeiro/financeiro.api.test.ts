@@ -4,7 +4,7 @@ const from = vi.fn()
 const getUser = vi.fn()
 vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) } } }))
 
-import { listarContas, criarConta, listarLancamentos, criarLancamento, marcarPago, gerarContaReceber } from './financeiro.api'
+import { listarContas, criarConta, listarLancamentos, criarLancamento, marcarPago, gerarContaReceber, lancarRecebimentosPedido } from './financeiro.api'
 
 const thenable = (result: any) => {
   const o: any = {}
@@ -57,6 +57,27 @@ describe('financeiro.api', () => {
     await marcarPago('l1', '2026-02-05', 'c1')
     expect(q.update).toHaveBeenCalledWith({ pago_em: '2026-02-05', conta_id: 'c1' })
     expect(q.eq).toHaveBeenCalledWith('id', 'l1')
+  })
+
+  it('lancarRecebimentosPedido cria uma receita por parcela (recebida = paga)', async () => {
+    const qcheck = ok([])
+    const qins = ok(null)
+    from.mockReturnValueOnce(qcheck).mockReturnValueOnce(qins)
+    await lancarRecebimentosPedido({ id: 'p1', cliente_id: 'c1', numero: 7 }, 'Cartão', [
+      { valor: 500, vencimento: '2026-10-22', recebido: true },
+      { valor: 500, vencimento: '2026-11-22', recebido: false },
+    ])
+    const rows = qins.insert.mock.calls[0][0] as any[]
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toMatchObject({ tipo: 'receita', valor: 500, categoria: 'Cartão', pedido_id: 'p1', cliente_id: 'c1' })
+    expect(rows[0].pago_em).toBeTruthy()
+    expect(rows[1].pago_em).toBeNull()
+  })
+
+  it('lancarRecebimentosPedido não duplica se o pedido já tem lançamento', async () => {
+    from.mockReturnValueOnce(ok([{ id: 'l1' }]))
+    await lancarRecebimentosPedido({ id: 'p1', cliente_id: 'c1', numero: 7 }, 'Pix', [{ valor: 10, vencimento: '2026-10-22', recebido: true }])
+    expect(from).toHaveBeenCalledTimes(1) // só o select de verificação
   })
 
   it('gerarContaReceber cria receita quando não existe, e recusa duplicado', async () => {

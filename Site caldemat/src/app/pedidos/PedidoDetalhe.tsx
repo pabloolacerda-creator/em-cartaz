@@ -5,8 +5,9 @@ import { formatMoedaBR } from '../../lib/money'
 import { formatNumero } from '../../lib/numero'
 import { EMPRESA } from '../../lib/empresa'
 import { obterPedido, aprovarPedido, reprovarPedido, faturarPedido } from './pedidos.api'
-import { gerarContaReceber } from '../financeiro/financeiro.api'
+import { gerarContaReceber, lancarRecebimentosPedido, type Parcela } from '../financeiro/financeiro.api'
 import { STATUS, statusDe } from './status'
+import FaturarDialog from './FaturarDialog'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 const dataHoraBR = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR') : '—')
@@ -36,6 +37,7 @@ export default function PedidoDetalhe() {
   const [erro, setErro] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
   const [acaoEmCurso, setAcaoEmCurso] = useState(false)
+  const [faturando, setFaturando] = useState(false)
 
   const carregar = useCallback(async () => {
     setErro(null)
@@ -91,6 +93,28 @@ export default function PedidoDetalhe() {
     try {
       await gerarContaReceber({ id: ped.id, cliente_id: ped.cliente_id, numero: ped.numero, total })
       setAviso('Conta a receber gerada no Financeiro.')
+    } catch (e) {
+      setErro(msg(e))
+    } finally {
+      setAcaoEmCurso(false)
+    }
+  }
+
+  async function confirmarFaturamento(forma: string, parcelas: Parcela[]) {
+    if (acaoEmCurso) return
+    setAcaoEmCurso(true)
+    setErro(null)
+    setAviso(null)
+    try {
+      await faturarPedido(ped.id)
+      try {
+        await lancarRecebimentosPedido({ id: ped.id, cliente_id: ped.cliente_id, numero: ped.numero }, forma, parcelas)
+        setAviso('Pedido faturado e lançado no Financeiro.')
+      } catch {
+        setAviso('Pedido faturado. (Não foi possível lançar no Financeiro — verifique permissão/migração.)')
+      }
+      setFaturando(false)
+      await carregar()
     } catch (e) {
       setErro(msg(e))
     } finally {
@@ -209,13 +233,23 @@ export default function PedidoDetalhe() {
           </>
         )}
         {status === 'aprovado' && (
-          <button type="button" disabled={acaoEmCurso} onClick={() => executar(faturarPedido)} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">Faturar</button>
+          <button type="button" disabled={acaoEmCurso} onClick={() => setFaturando(true)} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">Faturar</button>
         )}
         <Link to={`/app/pedidos/${pedido.id}/editar`} className="rounded border px-4 py-2">Editar</Link>
         <button type="button" disabled={acaoEmCurso} onClick={gerarReceber} className="rounded border px-4 py-2 disabled:opacity-50">Gerar conta a receber</button>
         <button type="button" onClick={() => window.print()} className="rounded border px-4 py-2">Imprimir</button>
         <Link to="/app/pedidos" className="rounded border px-4 py-2">Voltar</Link>
       </div>
+
+      {faturando && (
+        <FaturarDialog
+          total={total}
+          numero={pedido.numero}
+          salvando={acaoEmCurso}
+          onConfirm={confirmarFaturamento}
+          onCancel={() => setFaturando(false)}
+        />
+      )}
     </div>
   )
 }

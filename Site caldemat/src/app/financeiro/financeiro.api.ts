@@ -89,3 +89,32 @@ export async function gerarContaReceber(p: { id: string; cliente_id: string; num
     }),
   )
 }
+
+export type Parcela = { valor: number; vencimento: string; recebido: boolean }
+
+// Ao faturar: lança as parcelas de recebimento do pedido no Financeiro.
+// Cada parcela vira uma receita (recebida = pago hoje; futura = a receber).
+// A "forma" (Cartão/Boleto/Pix/...) é guardada na categoria. Não duplica se já houver lançamento do pedido.
+export async function lancarRecebimentosPedido(
+  p: { id: string; cliente_id: string; numero?: number | null },
+  forma: string,
+  parcelas: Parcela[],
+): Promise<void> {
+  const existentes = unwrap(await supabase.from('lancamentos').select('id').eq('pedido_id', p.id)) as { id: string }[]
+  if (existentes.length > 0) return
+  const hoje = new Date().toISOString().slice(0, 10)
+  const uid = await usuarioAtualId()
+  const n = parcelas.length
+  const rows = parcelas.map((parc, i) => ({
+    tipo: 'receita',
+    descricao: `Pedido${p.numero ? ` nº ${formatNumero(p.numero)}` : ''}${n > 1 ? ` (parcela ${i + 1}/${n})` : ''}`,
+    valor: parc.valor,
+    vencimento: parc.vencimento,
+    pago_em: parc.recebido ? hoje : null,
+    categoria: forma || null,
+    cliente_id: p.cliente_id,
+    pedido_id: p.id,
+    usuario_id: uid,
+  }))
+  unwrap(await supabase.from('lancamentos').insert(rows))
+}
