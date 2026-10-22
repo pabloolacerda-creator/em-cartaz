@@ -33,9 +33,12 @@ export default function LancamentosPage() {
   const [erro, setErro] = useState<string | null>(null)
   const [f, setF] = useState<Form>(VAZIO)
   const [filtro, setFiltro] = useState<Filtro>('todos')
+  // Rascunho dos filtros do painel (valem ao clicar em "Aplicar filtros").
   const [fTipo, setFTipo] = useState<'' | 'receita' | 'despesa'>('')
   const [periodoPagto, setPeriodoPagto] = useState<Periodo>({ de: null, ate: null })
   const [campoPeriodo, setCampoPeriodo] = useState<'vencimento' | 'pago_em'>('vencimento')
+  const VAZIO_AP = { tipo: '' as '' | 'receita' | 'despesa', campo: 'vencimento' as 'vencimento' | 'pago_em', periodo: { de: null, ate: null } as Periodo }
+  const [apF, setApF] = useState(VAZIO_AP)
   const [ocultar, setOcultar] = useState(false)
 
   const carregar = useCallback(async () => {
@@ -111,14 +114,23 @@ export default function LancamentosPage() {
       if (filtro === 'pagar' && !(l.tipo === 'despesa' && !l.pago_em)) return false
       if (filtro === 'receber' && !(l.tipo === 'receita' && !l.pago_em)) return false
       if (filtro === 'vencidos' && !(!l.pago_em && l.vencimento < hoje)) return false
-      if (fTipo && l.tipo !== fTipo) return false
-      const dataFiltro = campoPeriodo === 'pago_em' ? l.pago_em : l.vencimento
-      if ((periodoPagto.de || periodoPagto.ate) && !dentroDoPeriodo(dataFiltro, periodoPagto)) return false
+      if (apF.tipo && l.tipo !== apF.tipo) return false
+      const dataFiltro = apF.campo === 'pago_em' ? l.pago_em : l.vencimento
+      if ((apF.periodo.de || apF.periodo.ate) && !dentroDoPeriodo(dataFiltro, apF.periodo)) return false
       return true
     })
-  }, [itens, filtro, fTipo, periodoPagto, campoPeriodo])
+  }, [itens, filtro, apF])
 
   const valorTxt = (v: number) => (ocultar ? '•••' : formatMoedaBR(v))
+  function aplicarFiltros() {
+    setApF({ tipo: fTipo, campo: campoPeriodo, periodo: periodoPagto })
+  }
+  function limparFiltros() {
+    setFTipo('')
+    setCampoPeriodo('vencimento')
+    setPeriodoPagto({ de: null, ate: null })
+    setApF(VAZIO_AP)
+  }
 
   const campo = 'w-full rounded border border-gray-300 px-3 py-2'
   const btnFiltro = (chave: Filtro, rotulo: string) => (
@@ -133,7 +145,7 @@ export default function LancamentosPage() {
 
   return (
     <div className="space-y-6">
-      <RelatorioCabecalho titulo="Relatório Financeiro — Lançamentos" subtitulo={periodoPagto.de || periodoPagto.ate ? `Período por ${campoPeriodo === 'pago_em' ? 'data de pagamento' : 'vencimento'}` : undefined} />
+      <RelatorioCabecalho titulo="Relatório Financeiro — Lançamentos" subtitulo={apF.periodo.de || apF.periodo.ate ? `Período por ${apF.campo === 'pago_em' ? 'data de pagamento' : 'vencimento'}` : undefined} />
       {erro && <p role="alert" className="rounded bg-red-100 px-3 py-2 text-red-800 no-print">{erro}</p>}
 
       <form onSubmit={salvar} className="grid gap-3 no-print sm:grid-cols-3 sm:items-end">
@@ -211,11 +223,13 @@ export default function LancamentosPage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <button type="button" className="rounded bg-blue-700 px-4 py-2 text-white" onClick={aplicarFiltros}>Aplicar filtros</button>
+          <button type="button" className="rounded border px-4 py-2" onClick={limparFiltros}>Limpar filtros</button>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={ocultar} onChange={(e) => setOcultar(e.target.checked)} />
             Ocultar valores (para relatório)
           </label>
-          <button type="button" className="rounded bg-gray-900 px-4 py-2 text-white" onClick={() => window.print()}>Imprimir relatório</button>
+          <button type="button" className="rounded border px-4 py-2" onClick={() => window.print()}>Imprimir relatório</button>
         </div>
       </div>
 

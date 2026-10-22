@@ -29,12 +29,14 @@ export default function PedidosPage() {
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  // Filtros
+  // Filtros: "rascunho" (o que está nos campos) e "aplicado" (o que filtra a lista).
   const [fCliente, setFCliente] = useState('')
   const [fDesc, setFDesc] = useState('')
   const [fEmitidoPor, setFEmitidoPor] = useState('')
   const [fNumero, setFNumero] = useState('')
   const [periodo, setPeriodo] = useState<Periodo>({ de: null, ate: null })
+  const VAZIO_AP = { cliente: '', desc: '', emit: '', numero: '', periodo: { de: null, ate: null } as Periodo }
+  const [ap, setAp] = useState(VAZIO_AP)
 
   const carregar = useCallback(async () => {
     setErro(null)
@@ -65,27 +67,31 @@ export default function PedidosPage() {
   const emissor = (p: Linha) => (p.usuario_id ? nomePorId.get(p.usuario_id) ?? '—' : '—')
 
   const filtrados = useMemo(() => {
-    const desc = fDesc.trim().toLowerCase()
-    const numero = fNumero.trim()
+    const desc = ap.desc.trim().toLowerCase()
+    const numero = ap.numero.trim()
     return pedidos.filter((p) => {
-      if (fCliente && p.cliente_id !== fCliente) return false
+      if (ap.cliente && p.cliente_id !== ap.cliente) return false
       if (desc && !(p.descricoes ?? '').toLowerCase().includes(desc)) return false
-      if (fEmitidoPor && p.usuario_id !== fEmitidoPor) return false
+      if (ap.emit && p.usuario_id !== ap.emit) return false
       if (numero && !formatNumero(p.numero).includes(numero) && !String(p.numero ?? '').includes(numero)) return false
-      if (!dentroDoPeriodo(p.data, periodo)) return false
+      if (!dentroDoPeriodo(p.data, ap.periodo)) return false
       return true
     })
-  }, [pedidos, fCliente, fDesc, fEmitidoPor, fNumero, periodo])
+  }, [pedidos, ap])
 
+  function aplicarFiltros() {
+    setAp({ cliente: fCliente, desc: fDesc, emit: fEmitidoPor, numero: fNumero, periodo })
+  }
   function limparFiltros() {
     setFCliente('')
     setFDesc('')
     setFEmitidoPor('')
     setFNumero('')
     setPeriodo({ de: null, ate: null })
+    setAp(VAZIO_AP)
   }
 
-  const periodoTexto = periodo.de || periodo.ate ? `Período: ${periodo.de ? dataBR(periodo.de) : '...'} a ${periodo.ate ? dataBR(periodo.ate) : '...'}` : 'Todos os períodos'
+  const periodoTexto = ap.periodo.de || ap.periodo.ate ? `Período: ${ap.periodo.de ? dataBR(ap.periodo.de) : '...'} a ${ap.periodo.ate ? dataBR(ap.periodo.ate) : '...'}` : 'Todos os períodos'
   const campo = 'w-full rounded border border-gray-300 px-3 py-2'
 
   return (
@@ -140,8 +146,9 @@ export default function PedidosPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="rounded bg-gray-900 px-4 py-2 text-white" onClick={() => window.print()}>Imprimir relatório</button>
+          <button type="button" className="rounded bg-blue-700 px-4 py-2 text-white" onClick={aplicarFiltros}>Aplicar filtros</button>
           <button type="button" className="rounded border px-4 py-2" onClick={limparFiltros}>Limpar filtros</button>
+          <button type="button" className="rounded border px-4 py-2" onClick={() => window.print()}>Imprimir relatório</button>
         </div>
       </div>
 
