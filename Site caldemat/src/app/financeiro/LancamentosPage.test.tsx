@@ -45,14 +45,15 @@ describe('LancamentosPage', () => {
     expect(screen.queryByText(/200,00/)).not.toBeInTheDocument()
   })
 
-  it('filtro "A pagar" mostra só despesas em aberto', async () => {
+  it('status "A pagar" mostra só despesas em aberto (ao aplicar)', async () => {
     api.listarLancamentos.mockResolvedValue([
       lanc({ id: 'l1', tipo: 'despesa', descricao: 'Luz', pago_em: null }),
       lanc({ id: 'l2', tipo: 'receita', descricao: 'Venda', pago_em: null }),
     ])
     render(<LancamentosPage />)
     await screen.findByText('Luz')
-    fireEvent.click(screen.getByRole('button', { name: /a pagar/i }))
+    fireEvent.change(screen.getByLabelText(/^status/i), { target: { value: 'a_pagar' } })
+    fireEvent.click(screen.getByRole('button', { name: /aplicar filtros/i }))
     expect(screen.getByText('Luz')).toBeInTheDocument()
     expect(screen.queryByText('Venda')).not.toBeInTheDocument()
   })

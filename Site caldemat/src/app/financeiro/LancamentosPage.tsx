@@ -21,7 +21,7 @@ const VAZIO = {
   categoria: '', fornecedor: '', cliente_id: '', conta_id: '', obs: '',
 }
 type Form = typeof VAZIO
-type Filtro = 'todos' | 'pagar' | 'receber' | 'vencidos'
+type Status = '' | 'a_receber' | 'recebido' | 'a_pagar' | 'pago' | 'vencidos'
 const opc = (s: string) => (s.trim() === '' ? null : s.trim())
 
 export default function LancamentosPage() {
@@ -32,12 +32,11 @@ export default function LancamentosPage() {
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
   const [f, setF] = useState<Form>(VAZIO)
-  const [filtro, setFiltro] = useState<Filtro>('todos')
   // Rascunho dos filtros do painel (valem ao clicar em "Aplicar filtros").
-  const [fTipo, setFTipo] = useState<'' | 'receita' | 'despesa'>('')
+  const [fStatus, setFStatus] = useState<Status>('')
   const [periodoPagto, setPeriodoPagto] = useState<Periodo>({ de: null, ate: null })
   const [campoPeriodo, setCampoPeriodo] = useState<'vencimento' | 'pago_em'>('vencimento')
-  const VAZIO_AP = { tipo: '' as '' | 'receita' | 'despesa', campo: 'vencimento' as 'vencimento' | 'pago_em', periodo: { de: null, ate: null } as Periodo }
+  const VAZIO_AP = { status: '' as Status, campo: 'vencimento' as 'vencimento' | 'pago_em', periodo: { de: null, ate: null } as Periodo }
   const [apF, setApF] = useState(VAZIO_AP)
   const [ocultar, setOcultar] = useState(false)
 
@@ -110,38 +109,31 @@ export default function LancamentosPage() {
 
   const filtrados = useMemo(() => {
     const hoje = hojeISO()
+    const s = apF.status
     return itens.filter((l) => {
-      if (filtro === 'pagar' && !(l.tipo === 'despesa' && !l.pago_em)) return false
-      if (filtro === 'receber' && !(l.tipo === 'receita' && !l.pago_em)) return false
-      if (filtro === 'vencidos' && !(!l.pago_em && l.vencimento < hoje)) return false
-      if (apF.tipo && l.tipo !== apF.tipo) return false
+      if (s === 'a_receber' && !(l.tipo === 'receita' && !l.pago_em)) return false
+      if (s === 'recebido' && !(l.tipo === 'receita' && l.pago_em)) return false
+      if (s === 'a_pagar' && !(l.tipo === 'despesa' && !l.pago_em)) return false
+      if (s === 'pago' && !(l.tipo === 'despesa' && l.pago_em)) return false
+      if (s === 'vencidos' && !(!l.pago_em && l.vencimento < hoje)) return false
       const dataFiltro = apF.campo === 'pago_em' ? l.pago_em : l.vencimento
       if ((apF.periodo.de || apF.periodo.ate) && !dentroDoPeriodo(dataFiltro, apF.periodo)) return false
       return true
     })
-  }, [itens, filtro, apF])
+  }, [itens, apF])
 
   const valorTxt = (v: number) => (ocultar ? '•••' : formatMoedaBR(v))
   function aplicarFiltros() {
-    setApF({ tipo: fTipo, campo: campoPeriodo, periodo: periodoPagto })
+    setApF({ status: fStatus, campo: campoPeriodo, periodo: periodoPagto })
   }
   function limparFiltros() {
-    setFTipo('')
+    setFStatus('')
     setCampoPeriodo('vencimento')
     setPeriodoPagto({ de: null, ate: null })
     setApF(VAZIO_AP)
   }
 
   const campo = 'w-full rounded border border-gray-300 px-3 py-2'
-  const btnFiltro = (chave: Filtro, rotulo: string) => (
-    <button
-      type="button"
-      onClick={() => setFiltro(chave)}
-      className={`rounded px-3 py-1 text-sm ${filtro === chave ? 'bg-gray-900 text-white' : 'border hover:bg-gray-100'}`}
-    >
-      {rotulo}
-    </button>
-  )
 
   return (
     <div className="space-y-6">
@@ -196,19 +188,17 @@ export default function LancamentosPage() {
       </form>
 
       <div className="space-y-3 rounded-lg border bg-white p-4 no-print">
-        <div className="flex flex-wrap gap-2">
-          {btnFiltro('todos', 'Todos')}
-          {btnFiltro('pagar', 'A pagar')}
-          {btnFiltro('receber', 'A receber')}
-          {btnFiltro('vencidos', 'Vencidos')}
-        </div>
+        <h2 className="font-medium">Filtros</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label htmlFor="f-tipo" className="block text-sm">Filtrar por tipo</label>
-            <select id="f-tipo" className={campo} value={fTipo} onChange={(e) => setFTipo(e.target.value as '' | 'receita' | 'despesa')}>
-              <option value="">Entradas e saídas</option>
-              <option value="receita">Só entradas (receitas)</option>
-              <option value="despesa">Só saídas (despesas)</option>
+            <label htmlFor="f-status" className="block text-sm">Status</label>
+            <select id="f-status" className={campo} value={fStatus} onChange={(e) => setFStatus(e.target.value as Status)}>
+              <option value="">Todos</option>
+              <option value="a_receber">A receber</option>
+              <option value="recebido">Já recebido</option>
+              <option value="a_pagar">A pagar</option>
+              <option value="pago">Já pago</option>
+              <option value="vencidos">Vencidos</option>
             </select>
           </div>
           <div>
