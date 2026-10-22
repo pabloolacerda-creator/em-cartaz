@@ -3,6 +3,7 @@ import type { Material, Movimentacao } from '../../types'
 import { listarMateriais } from '../materiais/materiais.api'
 import { listarSaldos, registrarMovimentacao, historicoPorMaterial, type Saldo } from './estoque.api'
 import { UNIDADES } from '../../lib/unidades'
+import { unidadesCompativeis, converter, compativel } from '../../lib/unidadesConv'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 const num = (n: number) => n.toLocaleString('pt-BR')
@@ -57,7 +58,15 @@ export default function EstoquePage() {
   const qtd = Number(quantidade.replace(',', '.'))
   const qtdValida = quantidade.trim() !== '' && Number.isFinite(qtd) && qtd > 0
   const saldoAtual = saldos.find((s) => s.material_id === materialId)?.saldo ?? 0
-  const ficaNegativo = tipo === 'saida' && qtdValida && materialId !== '' && qtd > saldoAtual
+  const unidadeMaterial = materiais.find((x) => x.id === materialId)?.unidade ?? ''
+  const opcoesUnidade = materialId ? unidadesCompativeis(unidadeMaterial) : UNIDADES
+  const convertido =
+    qtdValida && materialId && unidade && unidadeMaterial && unidade !== unidadeMaterial && compativel(unidade, unidadeMaterial)
+      ? converter(qtd, unidade, unidadeMaterial)
+      : null
+  // Saída: compara o saldo (na unidade do material) com a quantidade convertida.
+  const qtdNaUnidadeMaterial = convertido ?? qtd
+  const ficaNegativo = tipo === 'saida' && qtdValida && materialId !== '' && qtdNaUnidadeMaterial > saldoAtual
 
   async function registrar(e: FormEvent) {
     e.preventDefault()
@@ -137,8 +146,8 @@ export default function EstoquePage() {
         <div>
           <label htmlFor="mov-un" className="block text-sm">Unidade</label>
           <select id="mov-un" className={campo} value={unidade} onChange={(e) => setUnidade(e.target.value)}>
-            <option value="">Selecione</option>
-            {(unidade && !UNIDADES.includes(unidade) ? [unidade, ...UNIDADES] : UNIDADES).map((u) => (
+            {!materialId && <option value="">Selecione</option>}
+            {(unidade && !opcoesUnidade.includes(unidade) ? [unidade, ...opcoesUnidade] : opcoesUnidade).map((u) => (
               <option key={u} value={u}>{u}</option>
             ))}
           </select>
@@ -152,6 +161,11 @@ export default function EstoquePage() {
             Registrar
           </button>
         </div>
+        {convertido !== null && (
+          <p className="text-sm text-gray-600 sm:col-span-6">
+            {num(qtd)} {unidade} = <strong>{num(convertido)} {unidadeMaterial}</strong> (unidade do material).
+          </p>
+        )}
         {ficaNegativo && (
           <p role="status" className="rounded bg-yellow-100 px-3 py-2 text-yellow-900 sm:col-span-6">
             Atenção: o saldo ficará negativo (saldo atual: {num(saldoAtual)}). Você ainda pode registrar.

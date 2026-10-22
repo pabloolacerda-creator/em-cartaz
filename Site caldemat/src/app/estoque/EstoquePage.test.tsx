@@ -127,6 +127,23 @@ describe('EstoquePage', () => {
     await waitFor(() => expect(botao).toBeEnabled())
   })
 
+  it('restringe as unidades às compatíveis e mostra a conversão', async () => {
+    const barra = { id: '3', nome: 'Barra', unidade: 'm', estoque_minimo: null, ativo: true }
+    mat.listarMateriais.mockResolvedValue([barra])
+    api.listarSaldos.mockResolvedValue([{ material_id: '3', nome: 'Barra', unidade: 'm', saldo: 5 }])
+    render(<EstoquePage />)
+    await screen.findByRole('cell', { name: 'Barra' })
+    fireEvent.change(screen.getByLabelText('Material'), { target: { value: '3' } })
+    const sel = screen.getByLabelText('Unidade') as HTMLSelectElement
+    const opcoes = within(sel).getAllByRole('option').map((o) => o.textContent)
+    expect(opcoes).toContain('cm')
+    expect(opcoes).toContain('m')
+    expect(opcoes).not.toContain('Quilo(s)')
+    fireEvent.change(screen.getByLabelText('Quantidade'), { target: { value: '100' } })
+    fireEvent.change(sel, { target: { value: 'cm' } })
+    expect((document.body.textContent ?? '').replace(/\s/g, ' ')).toMatch(/= 1 m/)
+  })
+
   it('mostra histórico do material selecionado', async () => {
     api.historicoPorMaterial.mockResolvedValue([
       { id: 'h1', material_id: '1', tipo: 'entrada', quantidade: 7, data: '2026-10-01T10:00:00Z', obs: 'compra', usuario_id: null },
