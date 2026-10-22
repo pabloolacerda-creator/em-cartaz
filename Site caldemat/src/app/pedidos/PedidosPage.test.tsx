@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
-const api = vi.hoisted(() => ({ listarPedidos: vi.fn(), criarPedido: vi.fn() }))
+const api = vi.hoisted(() => ({ listarPedidos: vi.fn(), criarPedido: vi.fn(), listarUsuariosNomes: vi.fn() }))
 const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
 const prod = vi.hoisted(() => ({ listarProdutos: vi.fn() }))
 vi.mock('./pedidos.api', () => api)
@@ -26,7 +26,7 @@ const norm = (s: string | null) => (s ?? '').replace(/\s/g, ' ')
 
 async function pronto() {
   renderPage()
-  await screen.findByRole('option', { name: 'Ana' })
+  await screen.findAllByRole('option', { name: 'Ana' })
 }
 const setItem = (i: number, d: string, q: string, v: string) => {
   fireEvent.change(screen.getAllByLabelText(/descrição/i)[i], { target: { value: d } })
@@ -41,6 +41,7 @@ describe('PedidosPage', () => {
     cli.listarClientes.mockResolvedValue([ana, bia])
     prod.listarProdutos.mockReset()
     prod.listarProdutos.mockResolvedValue([])
+    api.listarUsuariosNomes.mockResolvedValue([])
     api.listarPedidos.mockResolvedValue([])
   })
 
@@ -113,16 +114,17 @@ describe('PedidosPage', () => {
     expect(api.criarPedido).not.toHaveBeenCalled()
   })
 
-  it('filtra a lista por cliente e por data', async () => {
-    api.listarPedidos.mockResolvedValue([ped(), ped({ id: 'p2', cliente_nome: 'Bia', data: '2026-04-10', total: 5 })])
+  it('filtra a lista por cliente e por data de emissão', async () => {
+    api.listarPedidos.mockResolvedValue([ped(), ped({ id: 'p2', cliente_id: 'c2', cliente_nome: 'Bia', data: '2026-04-10', total: 5 })])
     renderPage()
     await screen.findByText('05/03/2026')
-    fireEvent.change(screen.getByLabelText(/buscar/i), { target: { value: 'bia' } })
+    fireEvent.change(screen.getByLabelText(/filtrar por cliente/i), { target: { value: 'c2' } })
     expect(screen.queryByText('05/03/2026')).not.toBeInTheDocument()
     expect(screen.getByText('10/04/2026')).toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText(/buscar/i), { target: { value: '05/03' } })
-    expect(screen.getByText('05/03/2026')).toBeInTheDocument()
-    expect(screen.queryByText('10/04/2026')).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/filtrar por cliente/i), { target: { value: '' } })
+    fireEvent.change(screen.getByLabelText(/data de emissão — de/i), { target: { value: '2026-04-01' } })
+    expect(screen.queryByText('05/03/2026')).not.toBeInTheDocument()
+    expect(screen.getByText('10/04/2026')).toBeInTheDocument()
   })
 
   it('não mostra mensagem de vazio quando há erro de carga', async () => {
@@ -146,7 +148,7 @@ describe('PedidosPage', () => {
     api.listarPedidos.mockResolvedValue([ped({ numero: 7 }), ped({ id: 'p2', numero: 42, cliente_nome: 'Bia', data: '2026-04-10' })])
     renderPage()
     await screen.findByText('000007')
-    fireEvent.change(screen.getByLabelText(/buscar/i), { target: { value: '000042' } })
+    fireEvent.change(screen.getByLabelText(/nº do pedido/i), { target: { value: '000042' } })
     expect(screen.queryByText('000007')).not.toBeInTheDocument()
     expect(screen.getByText('000042')).toBeInTheDocument()
   })
@@ -163,7 +165,7 @@ describe('PedidosPage', () => {
       { id: 'c1', nome: 'Ana', documento: '12.345.678/0001-90', endereco: 'Rua X, 10', telefone: '(65) 99999-0000', ativo: true },
     ])
     renderPage()
-    await screen.findByRole('option', { name: 'Ana' })
+    await screen.findAllByRole('option', { name: 'Ana' })
     fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
     expect(screen.getByText('12.345.678/0001-90')).toBeInTheDocument()
     expect(screen.getByText('Rua X, 10')).toBeInTheDocument()

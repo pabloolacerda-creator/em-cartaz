@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { Cliente, ContaFinanceira, Lancamento } from '../../types'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
+import { dentroDoPeriodo, type Periodo } from '../../lib/periodo'
 import { listarClientes } from '../clientes/clientes.api'
 import { listarLancamentos, criarLancamento, marcarPago, excluirLancamento, listarContas, type LancamentoInput } from './financeiro.api'
+import FiltroPeriodo from '../comum/FiltroPeriodo'
+import RelatorioCabecalho from '../comum/RelatorioCabecalho'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 const hojeISO = () => new Date().toISOString().slice(0, 10)
@@ -30,6 +33,9 @@ export default function LancamentosPage() {
   const [erro, setErro] = useState<string | null>(null)
   const [f, setF] = useState<Form>(VAZIO)
   const [filtro, setFiltro] = useState<Filtro>('todos')
+  const [fTipo, setFTipo] = useState<'' | 'receita' | 'despesa'>('')
+  const [periodoPagto, setPeriodoPagto] = useState<Periodo>({ de: null, ate: null })
+  const [ocultar, setOcultar] = useState(false)
 
   const carregar = useCallback(async () => {
     setErro(null)
@@ -101,12 +107,16 @@ export default function LancamentosPage() {
   const filtrados = useMemo(() => {
     const hoje = hojeISO()
     return itens.filter((l) => {
-      if (filtro === 'pagar') return l.tipo === 'despesa' && !l.pago_em
-      if (filtro === 'receber') return l.tipo === 'receita' && !l.pago_em
-      if (filtro === 'vencidos') return !l.pago_em && l.vencimento < hoje
+      if (filtro === 'pagar' && !(l.tipo === 'despesa' && !l.pago_em)) return false
+      if (filtro === 'receber' && !(l.tipo === 'receita' && !l.pago_em)) return false
+      if (filtro === 'vencidos' && !(!l.pago_em && l.vencimento < hoje)) return false
+      if (fTipo && l.tipo !== fTipo) return false
+      if ((periodoPagto.de || periodoPagto.ate) && !dentroDoPeriodo(l.pago_em, periodoPagto)) return false
       return true
     })
-  }, [itens, filtro])
+  }, [itens, filtro, fTipo, periodoPagto])
+
+  const valorTxt = (v: number) => (ocultar ? '•••' : formatMoedaBR(v))
 
   const campo = 'w-full rounded border border-gray-300 px-3 py-2'
   const btnFiltro = (chave: Filtro, rotulo: string) => (
@@ -121,9 +131,10 @@ export default function LancamentosPage() {
 
   return (
     <div className="space-y-6">
-      {erro && <p role="alert" className="rounded bg-red-100 px-3 py-2 text-red-800">{erro}</p>}
+      <RelatorioCabecalho titulo="Relatório Financeiro — Lançamentos" subtitulo={periodoPagto.de || periodoPagto.ate ? 'Filtrado por período de pagamento' : undefined} />
+      {erro && <p role="alert" className="rounded bg-red-100 px-3 py-2 text-red-800 no-print">{erro}</p>}
 
-      <form onSubmit={salvar} className="grid gap-3 sm:grid-cols-3 sm:items-end">
+      <form onSubmit={salvar} className="grid gap-3 no-print sm:grid-cols-3 sm:items-end">
         <div>
           <label htmlFor="lc-tipo" className="block text-sm">Tipo</label>
           <select id="lc-tipo" className={campo} value={f.tipo} onChange={set('tipo')}>
@@ -170,11 +181,33 @@ export default function LancamentosPage() {
         </div>
       </form>
 
-      <div className="flex flex-wrap gap-2">
-        {btnFiltro('todos', 'Todos')}
-        {btnFiltro('pagar', 'A pagar')}
-        {btnFiltro('receber', 'A receber')}
-        {btnFiltro('vencidos', 'Vencidos')}
+      <div className="space-y-3 rounded-lg border bg-white p-4 no-print">
+        <div className="flex flex-wrap gap-2">
+          {btnFiltro('todos', 'Todos')}
+          {btnFiltro('pagar', 'A pagar')}
+          {btnFiltro('receber', 'A receber')}
+          {btnFiltro('vencidos', 'Vencidos')}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor="f-tipo" className="block text-sm">Filtrar por tipo</label>
+            <select id="f-tipo" className={campo} value={fTipo} onChange={(e) => setFTipo(e.target.value as '' | 'receita' | 'despesa')}>
+              <option value="">Entradas e saídas</option>
+              <option value="receita">Só entradas (receitas)</option>
+              <option value="despesa">Só saídas (despesas)</option>
+            </select>
+          </div>
+          <div>
+            <FiltroPeriodo label="Período do pagamento" value={periodoPagto} onChange={setPeriodoPagto} />
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={ocultar} onChange={(e) => setOcultar(e.target.checked)} />
+            Ocultar valores (para relatório)
+          </label>
+          <button type="button" className="rounded bg-gray-900 px-4 py-2 text-white" onClick={() => window.print()}>Imprimir relatório</button>
+        </div>
       </div>
 
       {loading ? (
@@ -191,7 +224,7 @@ export default function LancamentosPage() {
                 <th>Tipo</th>
                 <th className="text-right">Valor</th>
                 <th>Situação</th>
-                <th><span className="sr-only">Ações</span></th>
+                <th className="no-print"><span className="sr-only">Ações</span></th>
               </tr>
             </thead>
             <tbody>
@@ -202,9 +235,9 @@ export default function LancamentosPage() {
                     <td className={`py-2 ${vencido ? 'font-medium text-red-700' : ''}`}>{dataBR(l.vencimento)}</td>
                     <td>{l.descricao}</td>
                     <td className={l.tipo === 'receita' ? 'text-green-700' : 'text-red-700'}>{l.tipo === 'receita' ? 'Receita' : 'Despesa'}</td>
-                    <td className="text-right">{formatMoedaBR(l.valor)}</td>
+                    <td className="text-right">{valorTxt(l.valor)}</td>
                     <td>{l.pago_em ? `Pago ${dataBR(l.pago_em)}` : vencido ? 'Vencido' : 'Em aberto'}</td>
-                    <td className="space-x-2 whitespace-nowrap text-right">
+                    <td className="space-x-2 whitespace-nowrap text-right no-print">
                       {!l.pago_em && <button type="button" className="underline" onClick={() => baixar(l)}>Baixar</button>}
                       <button type="button" className="text-red-700 underline" onClick={() => excluir(l)}>Excluir</button>
                     </td>

@@ -56,14 +56,26 @@ export async function criarPedido(p: PedidoInput): Promise<{ id: string }> {
   return { id: ped.id }
 }
 
-export async function listarPedidos(): Promise<(Pedido & { cliente_nome?: string; total: number })[]> {
+export async function listarPedidos(): Promise<(Pedido & { cliente_nome?: string; total: number; descricoes: string })[]> {
   const [peds, totais] = await Promise.all([
-    supabase.from('pedidos').select('*, clientes(nome)').order('data', { ascending: false }),
+    supabase.from('pedidos').select('*, clientes(nome), pedido_itens(descricao)').order('data', { ascending: false }),
     supabase.from('pedidos_total').select('*'),
   ])
-  const rows = unwrap(peds) as (Pedido & { clientes?: { nome: string } | null })[]
+  const rows = unwrap(peds) as (Pedido & { clientes?: { nome: string } | null; pedido_itens?: { descricao: string }[] })[]
   const tot = new Map((unwrap(totais) as { pedido_id: string; total: number | string }[]).map((t) => [t.pedido_id, Number(t.total)]))
-  return rows.map(({ clientes, ...p }) => ({ ...p, cliente_nome: clientes?.nome, total: tot.get(p.id) ?? 0 }))
+  return rows.map(({ clientes, pedido_itens, ...p }) => ({
+    ...p,
+    cliente_nome: clientes?.nome,
+    descricoes: (pedido_itens ?? []).map((i) => i.descricao).join(' | '),
+    total: tot.get(p.id) ?? 0,
+  }))
+}
+
+// Nomes dos usuários (para o filtro "Emitido por"), via função protegida no banco.
+export async function listarUsuariosNomes(): Promise<{ id: string; nome: string }[]> {
+  const { data, error } = await supabase.rpc('usuarios_nomes')
+  if (error) throw error
+  return (data ?? []) as { id: string; nome: string }[]
 }
 
 type ClienteJoin = { nome: string; documento?: string | null; endereco?: string | null; telefone?: string | null; email?: string | null }

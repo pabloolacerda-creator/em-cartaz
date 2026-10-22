@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const from = vi.fn()
 const getUser = vi.fn()
-vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) } } }))
+const rpc = vi.fn()
+vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) }, rpc: (...a: any[]) => rpc(...a) } }))
 
-import { criarPedido, listarPedidos, obterPedido, editarPedido, aprovarPedido, reprovarPedido, faturarPedido } from './pedidos.api'
+import { criarPedido, listarPedidos, obterPedido, editarPedido, aprovarPedido, reprovarPedido, faturarPedido, listarUsuariosNomes } from './pedidos.api'
 
 const thenable = (result: any) => {
   const o: any = {}
@@ -130,6 +131,13 @@ describe('pedidos.api', () => {
   it('aprovarPedido lança erro do supabase', async () => {
     from.mockReturnValueOnce(fail('e'))
     await expect(aprovarPedido('p1')).rejects.toMatchObject({ message: 'e' })
+  })
+
+  it('listarUsuariosNomes chama a função usuarios_nomes', async () => {
+    rpc.mockResolvedValue({ data: [{ id: 'u1', nome: 'Ana' }], error: null })
+    const r = await listarUsuariosNomes()
+    expect(rpc).toHaveBeenCalledWith('usuarios_nomes')
+    expect(r).toEqual([{ id: 'u1', nome: 'Ana' }])
   })
 
   it('criarPedido inclui prazo_entrega, forma_pagamento e obs do item quando informados', async () => {

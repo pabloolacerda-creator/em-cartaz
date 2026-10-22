@@ -27,13 +27,22 @@ describe('LancamentosPage', () => {
     await waitFor(() => expect(api.listarLancamentos).toHaveBeenCalled())
     fireEvent.change(screen.getByLabelText(/^tipo/i), { target: { value: 'despesa' } })
     fireEvent.change(screen.getByLabelText(/descrição/i), { target: { value: ' Conta de luz ' } })
-    fireEvent.change(screen.getByLabelText(/valor/i), { target: { value: '200,00' } })
+    fireEvent.change(screen.getByLabelText(/^valor$/i), { target: { value: '200,00' } })
     fireEvent.change(screen.getByLabelText(/vencimento/i), { target: { value: '2026-02-10' } })
     fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
     await waitFor(() => expect(api.criarLancamento).toHaveBeenCalledTimes(1))
     expect(api.criarLancamento).toHaveBeenCalledWith(
       expect.objectContaining({ tipo: 'despesa', descricao: 'Conta de luz', valor: 200, vencimento: '2026-02-10' }),
     )
+  })
+
+  it('ocultar valores esconde os R$ na lista', async () => {
+    api.listarLancamentos.mockResolvedValue([lanc({ id: 'l1', tipo: 'despesa', descricao: 'Luz', valor: 200, pago_em: null })])
+    render(<LancamentosPage />)
+    await screen.findByText('Luz')
+    expect(screen.getByText(/200,00/)).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText(/ocultar valores/i))
+    expect(screen.queryByText(/200,00/)).not.toBeInTheDocument()
   })
 
   it('filtro "A pagar" mostra só despesas em aberto', async () => {
