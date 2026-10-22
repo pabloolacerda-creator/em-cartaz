@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { usePerfil } from './RequireAuth'
 import { podeAcessar } from '../lib/permissions'
 import { sair } from '../lib/auth'
@@ -37,8 +37,10 @@ export default function Dashboard() {
       <aside className="border-b bg-white md:w-56 md:border-b-0 md:border-r">
         <div className="flex items-center justify-between p-4 md:block">
           <div>
-            <div className="text-lg font-bold">Caldemat</div>
-            <div className="text-sm text-gray-500">{perfil.nome}</div>
+            <Link to="/app" aria-label="Ir para o início">
+              <img src="/logo-cor.png" alt="Caldemat" className="h-10 w-auto" />
+            </Link>
+            <div className="mt-1 text-sm text-gray-500">{perfil.nome}</div>
           </div>
           <button
             type="button"
