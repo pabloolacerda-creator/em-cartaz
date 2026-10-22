@@ -9,6 +9,7 @@ type Item = { modulo: Modulo; rotulo: string; to: string }
 // "Cadastro" agrupa os cadastros; Estoque e Pedidos são operação (itens soltos).
 const CADASTRO_SUBS: Item[] = [
   { modulo: 'materia_prima', rotulo: 'Matéria-Prima', to: '/app/cadastro/materiais' },
+  { modulo: 'produtos', rotulo: 'Produtos/Serviços', to: '/app/cadastro/produtos' },
   { modulo: 'clientes', rotulo: 'Clientes', to: '/app/cadastro/clientes' },
   { modulo: 'funcionarios', rotulo: 'Funcionários', to: '/app/cadastro/funcionarios' },
 ]

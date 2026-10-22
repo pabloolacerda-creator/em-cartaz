@@ -12,7 +12,7 @@ const CORS = {
 const json = (status: number, corpo: unknown) =>
   new Response(JSON.stringify(corpo), { status, headers: { ...CORS, 'Content-Type': 'application/json' } })
 
-const PERMS = ['pode_materia_prima', 'pode_estoque', 'pode_clientes', 'pode_pedidos'] as const
+const PERMS = ['pode_materia_prima', 'pode_estoque', 'pode_clientes', 'pode_pedidos', 'pode_produtos'] as const
 // Dados cadastrais opcionais do funcionário (gravados em perfis quando informados).
 const CADASTRAIS = ['cpf', 'telefone', 'cargo', 'data_admissao', 'email'] as const
 

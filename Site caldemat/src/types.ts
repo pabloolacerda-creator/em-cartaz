@@ -6,6 +6,7 @@ export type Perfil = {
   pode_estoque: boolean
   pode_clientes: boolean
   pode_pedidos: boolean
+  pode_produtos: boolean
   ativo: boolean
   // Dados cadastrais (opcionais)
   cpf?: string | null
@@ -15,7 +16,16 @@ export type Perfil = {
   email?: string | null
 }
 
-export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'funcionarios'
+export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'funcionarios'
+
+export type Produto = {
+  id: string
+  nome: string
+  unidade: string
+  valor_venda: number
+  descricao?: string | null
+  ativo: boolean
+}
 
 export type Material = {
   id: string
@@ -70,6 +80,9 @@ export type Pedido = {
   usuario_id: string | null
   status?: StatusPedido
   faturado_em?: string | null
+  // Numeração nativa do sistema (imutável)
+  numero?: number | null
+  fatura_numero?: number | null
   // Informações adicionais (bloco 3)
   prazo_entrega?: string | null
   forma_pagamento?: string | null
@@ -88,4 +101,11 @@ export type PedidoItem = {
   quantidade: number
   valor_unitario: number
   obs?: string | null
+  // Item de produto/serviço (preço de sistema + cálculo por medida)
+  produto_id?: string | null
+  unidade?: string | null
+  largura?: number | null
+  altura?: number | null
+  descricao_adicional?: string | null
+  valor_total?: number | null
 }

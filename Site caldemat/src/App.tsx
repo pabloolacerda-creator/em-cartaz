@@ -7,6 +7,7 @@ import CadastroHome from './app/CadastroHome'
 import Materiais from './app/materiais/MateriaisPage'
 import Estoque from './app/estoque/EstoquePage'
 import Clientes from './app/clientes/ClientesPage'
+import Produtos from './app/produtos/ProdutosPage'
 import Pedidos from './app/pedidos/PedidosPage'
 import PedidoDetalhe from './app/pedidos/PedidoDetalhe'
 import PedidoEditar from './app/pedidos/PedidoEditar'
@@ -30,6 +31,7 @@ export const router = createBrowserRouter(
         { index: true, element: <Inicio /> },
         { path: 'cadastro', element: <CadastroHome /> },
         { path: 'cadastro/materiais', element: <RequireModulo modulo="materia_prima"><Materiais /></RequireModulo> },
+        { path: 'cadastro/produtos', element: <RequireModulo modulo="produtos"><Produtos /></RequireModulo> },
         { path: 'cadastro/clientes', element: <RequireModulo modulo="clientes"><Clientes /></RequireModulo> },
         { path: 'cadastro/funcionarios', element: <Funcionarios /> },
         { path: 'estoque', element: <RequireModulo modulo="estoque"><Estoque /></RequireModulo> },

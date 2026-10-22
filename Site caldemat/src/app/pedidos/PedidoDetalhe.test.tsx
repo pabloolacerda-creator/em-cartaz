@@ -69,6 +69,25 @@ describe('PedidoDetalhe', () => {
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeInTheDocument()
   })
 
+  it('mostra número do pedido e da fatura e um item de produto com medidas', async () => {
+    api.obterPedido.mockResolvedValue({
+      pedido: {
+        id: 'p1', cliente_id: 'c1', data: '2026-10-18T10:20:00Z', obs: null, usuario_id: null,
+        status: 'faturado', numero: 123, fatura_numero: 45, cliente_nome: 'Ana', faturado_em: '2026-10-19T09:00:00Z',
+      },
+      itens: [{
+        id: 'i1', pedido_id: 'p1', descricao: 'Lona 440', quantidade: 2, valor_unitario: 120,
+        produto_id: 'pr1', unidade: 'm²', largura: 1.5, altura: 2, descricao_adicional: 'reforçada', valor_total: 720,
+      }],
+    })
+    abrir()
+    expect(await screen.findByText(/000123/)).toBeInTheDocument()
+    expect(screen.getByText(/000045/)).toBeInTheDocument()
+    expect(screen.getByText('reforçada')).toBeInTheDocument()
+    // total do item usa valor_total (720), não quantidade × valor_unitário
+    expect(screen.getAllByText(/720,00/).length).toBeGreaterThan(0)
+  })
+
   it('mostra os 3 blocos, obs do item e o cabeçalho de impressão da empresa', async () => {
     api.obterPedido.mockResolvedValue({
       pedido: {

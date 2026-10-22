@@ -4,8 +4,10 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
 const api = vi.hoisted(() => ({ obterPedido: vi.fn(), editarPedido: vi.fn() }))
 const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
+const prod = vi.hoisted(() => ({ listarProdutos: vi.fn() }))
 vi.mock('./pedidos.api', () => api)
 vi.mock('../clientes/clientes.api', () => cli)
+vi.mock('../produtos/produtos.api', () => prod)
 
 import PedidoEditar from './PedidoEditar'
 
@@ -28,6 +30,8 @@ describe('PedidoEditar', () => {
     Object.values(api).forEach((f) => f.mockReset())
     cli.listarClientes.mockReset()
     cli.listarClientes.mockResolvedValue([ana, bia])
+    prod.listarProdutos.mockReset()
+    prod.listarProdutos.mockResolvedValue([])
     api.obterPedido.mockResolvedValue({
       pedido: { id: 'p1', cliente_id: 'c1', data: '2026-03-05', obs: 'nota', usuario_id: null, status: 'emitido', prazo_entrega: '10 dias', forma_pagamento: 'Boleto' },
       itens: [{ id: 'i1', pedido_id: 'p1', descricao: 'Tanque', quantidade: 2, valor_unitario: 1500, obs: 'inox' }],

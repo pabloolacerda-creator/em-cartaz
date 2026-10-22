@@ -4,8 +4,10 @@ import { MemoryRouter } from 'react-router-dom'
 
 const api = vi.hoisted(() => ({ listarPedidos: vi.fn(), criarPedido: vi.fn() }))
 const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
+const prod = vi.hoisted(() => ({ listarProdutos: vi.fn() }))
 vi.mock('./pedidos.api', () => api)
 vi.mock('../clientes/clientes.api', () => cli)
+vi.mock('../produtos/produtos.api', () => prod)
 
 import PedidosPage from './PedidosPage'
 
@@ -37,6 +39,8 @@ describe('PedidosPage', () => {
     Object.values(api).forEach((f) => f.mockReset())
     cli.listarClientes.mockReset()
     cli.listarClientes.mockResolvedValue([ana, bia])
+    prod.listarProdutos.mockReset()
+    prod.listarProdutos.mockResolvedValue([])
     api.listarPedidos.mockResolvedValue([])
   })
 
@@ -136,6 +140,15 @@ describe('PedidosPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/falhou/)
     expect(screen.getByRole('button', { name: /salvar pedido/i })).toBeEnabled()
+  })
+
+  it('mostra o número do pedido e permite buscar por ele', async () => {
+    api.listarPedidos.mockResolvedValue([ped({ numero: 7 }), ped({ id: 'p2', numero: 42, cliente_nome: 'Bia', data: '2026-04-10' })])
+    renderPage()
+    await screen.findByText('000007')
+    fireEvent.change(screen.getByLabelText(/buscar/i), { target: { value: '000042' } })
+    expect(screen.queryByText('000007')).not.toBeInTheDocument()
+    expect(screen.getByText('000042')).toBeInTheDocument()
   })
 
   it('mostra os 3 blocos (cliente, produtos e serviços, informações adicionais)', async () => {

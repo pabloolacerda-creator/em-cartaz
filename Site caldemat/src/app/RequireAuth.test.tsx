@@ -10,7 +10,7 @@ import RequireAuth, { usePerfil } from './RequireAuth'
 
 const perfil: Perfil = {
   id: '1', nome: 'Maria', is_admin: false, pode_materia_prima: false,
-  pode_estoque: true, pode_clientes: false, pode_pedidos: false, ativo: true,
+  pode_estoque: true, pode_clientes: false, pode_pedidos: false, pode_produtos: false, ativo: true,
 }
 
 function Filho() {

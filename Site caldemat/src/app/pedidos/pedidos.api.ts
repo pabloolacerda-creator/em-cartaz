@@ -2,7 +2,17 @@ import { supabase } from '../../lib/supabase'
 import { usuarioAtualId } from '../../lib/usuarioAtual'
 import type { Pedido, PedidoItem } from '../../types'
 
-export type ItemInput = { descricao: string; quantidade: number; valor_unitario: number; obs?: string | null }
+export type ItemInput = {
+  descricao: string
+  quantidade: number
+  valor_unitario: number
+  obs?: string | null
+  // Item de produto/serviço: o banco reaplica preço/unidade e calcula valor_total.
+  produto_id?: string | null
+  largura?: number | null
+  altura?: number | null
+  descricao_adicional?: string | null
+}
 export type PedidoInput = {
   cliente_id: string
   obs?: string | null

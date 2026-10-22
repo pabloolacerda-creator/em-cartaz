@@ -1,12 +1,25 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import type { Cliente } from '../../types'
+import type { Cliente, Produto } from '../../types'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
-import type { PedidoInput } from './pedidos.api'
+import { modoMedida, calcularValorItem } from './calculo'
+import type { ItemInput, PedidoInput } from './pedidos.api'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 
-export type ItemForm = { descricao: string; quantidade: string; valor: string; obs: string }
-export const ITEM_VAZIO: ItemForm = { descricao: '', quantidade: '1', valor: '', obs: '' }
+// produto_id vazio = item de descrição livre (preço e descrição digitados à mão).
+export type ItemForm = {
+  produto_id: string
+  descricao: string
+  descricao_adicional: string
+  quantidade: string
+  valor: string
+  largura: string
+  altura: string
+  obs: string
+}
+export const ITEM_VAZIO: ItemForm = {
+  produto_id: '', descricao: '', descricao_adicional: '', quantidade: '1', valor: '', largura: '', altura: '', obs: '',
+}
 
 export type PedidoFormValor = {
   cliente_id: string
@@ -22,16 +35,19 @@ const parseQtd = (s: string) => {
   const t = s.trim().replace(',', '.')
   return t === '' ? NaN : Number(t)
 }
-// total do item arredondado a centavos, para evitar erro de ponto flutuante
-const totalItem = (i: ItemForm) => {
-  const q = parseQtd(i.quantidade)
-  const v = parseMoedaBR(i.valor.trim())
-  return Number.isNaN(q) || Number.isNaN(v) ? 0 : Math.round(q * v * 100) / 100
+const parseMedida = (s: string) => {
+  const t = s.trim().replace(',', '.')
+  return t === '' ? NaN : Number(t)
+}
+const medidaOuNulo = (s: string) => {
+  const v = parseMedida(s)
+  return Number.isNaN(v) ? null : v
 }
 const contatoDe = (c?: Cliente) => [c?.telefone, c?.email].filter(Boolean).join(' · ')
 
 type Props = {
   clientes: Cliente[]
+  produtos: Produto[]
   inicial?: PedidoFormValor
   dataTexto: string
   textoBotao: string
@@ -39,7 +55,7 @@ type Props = {
   onSubmit: (input: PedidoInput) => Promise<void>
 }
 
-export default function PedidoForm({ clientes, inicial, dataTexto, textoBotao, limparAoSalvar, onSubmit }: Props) {
+export default function PedidoForm({ clientes, produtos, inicial, dataTexto, textoBotao, limparAoSalvar, onSubmit }: Props) {
   const base = inicial ?? VALOR_VAZIO
   const [clienteId, setClienteId] = useState(base.cliente_id)
   const [obs, setObs] = useState(base.obs)
@@ -50,7 +66,22 @@ export default function PedidoForm({ clientes, inicial, dataTexto, textoBotao, l
   const [salvando, setSalvando] = useState(false)
 
   const clienteSel = useMemo(() => clientes.find((c) => c.id === clienteId), [clientes, clienteId])
-  const totalPedido = useMemo(() => itens.reduce((s, i) => s + Math.round(totalItem(i) * 100), 0) / 100, [itens])
+  const produtoDe = (it: ItemForm) => produtos.find((p) => p.id === it.produto_id)
+
+  const totalItem = (it: ItemForm): number => {
+    const prod = produtoDe(it)
+    if (it.produto_id && prod) {
+      return calcularValorItem(prod.unidade, parseQtd(it.quantidade), parseMedida(it.largura), parseMedida(it.altura), prod.valor_venda)
+    }
+    const q = parseQtd(it.quantidade)
+    const v = parseMoedaBR(it.valor.trim())
+    return Number.isNaN(q) || Number.isNaN(v) ? 0 : Math.round(q * v * 100) / 100
+  }
+  const totalPedido = useMemo(
+    () => itens.reduce((s, it) => s + Math.round(totalItem(it) * 100), 0) / 100,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [itens, produtos],
+  )
 
   const setItem = (idx: number, k: keyof ItemForm, v: string) =>
     setItens((p) => p.map((it, i) => (i === idx ? { ...it, [k]: v } : it)))
@@ -59,16 +90,41 @@ export default function PedidoForm({ clientes, inicial, dataTexto, textoBotao, l
     e.preventDefault()
     if (salvando) return
     if (!clienteId) return setErro('Selecione o cliente.')
-    const out: { descricao: string; quantidade: number; valor_unitario: number; obs: string | null }[] = []
+    const out: ItemInput[] = []
     for (let n = 0; n < itens.length; n++) {
       const it = itens[n]
-      const descricao = it.descricao.trim()
       const quantidade = parseQtd(it.quantidade)
-      const valor = parseMoedaBR(it.valor.trim())
-      if (!descricao) return setErro(`Item ${n + 1}: informe a descrição.`)
       if (!(quantidade > 0)) return setErro(`Item ${n + 1}: a quantidade deve ser maior que zero.`)
-      if (Number.isNaN(valor)) return setErro(`Item ${n + 1}: valor unitário inválido (ex.: 1.234,56).`)
-      out.push({ descricao, quantidade, valor_unitario: valor, obs: it.obs.trim() || null })
+      if (it.produto_id) {
+        const prod = produtoDe(it)
+        if (!prod) return setErro(`Item ${n + 1}: selecione um produto válido.`)
+        const modo = modoMedida(prod.unidade)
+        const largura = medidaOuNulo(it.largura)
+        const altura = medidaOuNulo(it.altura)
+        if (modo === 'area' && (!(largura! > 0) || !(altura! > 0))) return setErro(`Item ${n + 1}: informe largura e altura.`)
+        if (modo === 'linear' && !(largura! > 0)) return setErro(`Item ${n + 1}: informe o comprimento.`)
+        const item: ItemInput = {
+          descricao: prod.nome,
+          quantidade,
+          valor_unitario: prod.valor_venda,
+          produto_id: it.produto_id,
+          descricao_adicional: it.descricao_adicional.trim() || null,
+          obs: it.obs.trim() || null,
+        }
+        if (modo === 'area') {
+          item.largura = largura
+          item.altura = altura
+        } else if (modo === 'linear') {
+          item.largura = largura
+        }
+        out.push(item)
+      } else {
+        const descricao = it.descricao.trim()
+        const valor = parseMoedaBR(it.valor.trim())
+        if (!descricao) return setErro(`Item ${n + 1}: informe a descrição.`)
+        if (Number.isNaN(valor)) return setErro(`Item ${n + 1}: valor unitário inválido (ex.: 1.234,56).`)
+        out.push({ descricao, quantidade, valor_unitario: valor, obs: it.obs.trim() || null })
+      }
     }
     if (out.length === 0) return setErro('Adicione ao menos um item.')
     setErro(null)
@@ -96,6 +152,7 @@ export default function PedidoForm({ clientes, inicial, dataTexto, textoBotao, l
   }
 
   const campo = 'w-full rounded border border-gray-300 px-3 py-2'
+  const campoRO = 'w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-gray-600'
   const bloco = 'rounded-lg border bg-white p-4 space-y-3'
   const tituloBloco = 'font-medium text-gray-900'
   const rotulo = 'text-sm text-gray-500'
@@ -148,38 +205,87 @@ export default function PedidoForm({ clientes, inicial, dataTexto, textoBotao, l
       {/* Bloco 2 — Produtos e Serviços */}
       <section className={bloco}>
         <h3 className={tituloBloco}>Produtos e Serviços</h3>
-        {itens.map((it, i) => (
-          <div key={i} className="rounded border border-gray-200 p-3 space-y-2">
-            <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr_auto_auto] sm:items-end">
-              <div>
-                <label htmlFor={`ped-desc-${i}`} className="block text-sm">Descrição</label>
-                <input id={`ped-desc-${i}`} className={campo} value={it.descricao} onChange={(e) => setItem(i, 'descricao', e.target.value)} />
-              </div>
-              <div>
-                <label htmlFor={`ped-qtd-${i}`} className="block text-sm">Quantidade</label>
-                <input id={`ped-qtd-${i}`} className={campo} inputMode="decimal" value={it.quantidade} onChange={(e) => setItem(i, 'quantidade', e.target.value)} />
-              </div>
-              <div>
-                <label htmlFor={`ped-val-${i}`} className="block text-sm">Valor unitário</label>
-                <input id={`ped-val-${i}`} className={campo} inputMode="decimal" placeholder="0,00" value={it.valor} onChange={(e) => setItem(i, 'valor', e.target.value)} />
-              </div>
-              <div className="py-2 text-sm">
-                Total: <span data-testid={`total-item-${i}`}>{formatMoedaBR(totalItem(it))}</span>
-              </div>
-              <div>
-                {itens.length > 1 && (
-                  <button type="button" className="text-red-700 underline" aria-label={`Remover item ${i + 1}`} onClick={() => setItens((p) => p.filter((_, j) => j !== i))}>
-                    Remover
-                  </button>
+        {itens.map((it, i) => {
+          const prod = produtoDe(it)
+          const modo = prod ? modoMedida(prod.unidade) : null
+          return (
+            <div key={i} className="rounded border border-gray-200 p-3 space-y-2">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label htmlFor={`ped-prod-${i}`} className="block text-sm">Produto/serviço</label>
+                  <select id={`ped-prod-${i}`} className={campo} value={it.produto_id} onChange={(e) => setItem(i, 'produto_id', e.target.value)}>
+                    <option value="">— Descrição livre —</option>
+                    {produtos.map((p) => (
+                      <option key={p.id} value={p.id}>{p.nome}</option>
+                    ))}
+                  </select>
+                </div>
+                {it.produto_id ? (
+                  <div>
+                    <label htmlFor={`ped-descadic-${i}`} className="block text-sm">Descrição adicional</label>
+                    <input id={`ped-descadic-${i}`} className={campo} value={it.descricao_adicional} onChange={(e) => setItem(i, 'descricao_adicional', e.target.value)} />
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor={`ped-desc-${i}`} className="block text-sm">Descrição</label>
+                    <input id={`ped-desc-${i}`} className={campo} value={it.descricao} onChange={(e) => setItem(i, 'descricao', e.target.value)} />
+                  </div>
                 )}
               </div>
+
+              <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto_auto] sm:items-end">
+                {modo === 'area' && (
+                  <>
+                    <div>
+                      <label htmlFor={`ped-larg-${i}`} className="block text-sm">Largura (m)</label>
+                      <input id={`ped-larg-${i}`} className={campo} inputMode="decimal" value={it.largura} onChange={(e) => setItem(i, 'largura', e.target.value)} />
+                    </div>
+                    <div>
+                      <label htmlFor={`ped-alt-${i}`} className="block text-sm">Altura (m)</label>
+                      <input id={`ped-alt-${i}`} className={campo} inputMode="decimal" value={it.altura} onChange={(e) => setItem(i, 'altura', e.target.value)} />
+                    </div>
+                  </>
+                )}
+                {modo === 'linear' && (
+                  <div>
+                    <label htmlFor={`ped-comp-${i}`} className="block text-sm">Comprimento (m)</label>
+                    <input id={`ped-comp-${i}`} className={campo} inputMode="decimal" value={it.largura} onChange={(e) => setItem(i, 'largura', e.target.value)} />
+                  </div>
+                )}
+                <div>
+                  <label htmlFor={`ped-qtd-${i}`} className="block text-sm">Quantidade</label>
+                  <input id={`ped-qtd-${i}`} className={campo} inputMode="decimal" value={it.quantidade} onChange={(e) => setItem(i, 'quantidade', e.target.value)} />
+                </div>
+                {it.produto_id ? (
+                  <div>
+                    <span className="block text-sm">{prod && modoMedida(prod.unidade) === 'area' ? 'Valor do m²' : 'Valor unitário'}</span>
+                    <div className={campoRO}>{prod ? formatMoedaBR(prod.valor_venda) : '—'}</div>
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor={`ped-val-${i}`} className="block text-sm">Valor unitário</label>
+                    <input id={`ped-val-${i}`} className={campo} inputMode="decimal" placeholder="0,00" value={it.valor} onChange={(e) => setItem(i, 'valor', e.target.value)} />
+                  </div>
+                )}
+                <div className="py-2 text-sm">
+                  Total: <span data-testid={`total-item-${i}`}>{formatMoedaBR(totalItem(it))}</span>
+                </div>
+                <div>
+                  {itens.length > 1 && (
+                    <button type="button" className="text-red-700 underline" aria-label={`Remover item ${i + 1}`} onClick={() => setItens((p) => p.filter((_, j) => j !== i))}>
+                      Remover
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor={`ped-item-obs-${i}`} className="block text-sm">Obs</label>
+                <input id={`ped-item-obs-${i}`} aria-label={`Observação do item ${i + 1}`} className={campo} value={it.obs} onChange={(e) => setItem(i, 'obs', e.target.value)} />
+              </div>
             </div>
-            <div>
-              <label htmlFor={`ped-item-obs-${i}`} className="block text-sm">Obs</label>
-              <input id={`ped-item-obs-${i}`} aria-label={`Observação do item ${i + 1}`} className={campo} value={it.obs} onChange={(e) => setItem(i, 'obs', e.target.value)} />
-            </div>
-          </div>
-        ))}
+          )
+        })}
 
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" className="rounded border px-4 py-2" onClick={() => setItens((p) => [...p, ITEM_VAZIO])}>

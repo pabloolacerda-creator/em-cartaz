@@ -5,9 +5,10 @@ import type { Perfil, Modulo } from '../types'
 const base: Perfil = {
   id: 'u1', nome: 'Teste', is_admin: false,
   pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false,
+  pode_produtos: false,
   ativo: true,
 }
-const todos: Modulo[] = ['materia_prima', 'estoque', 'clientes', 'pedidos', 'funcionarios']
+const todos: Modulo[] = ['materia_prima', 'estoque', 'clientes', 'pedidos', 'produtos', 'funcionarios']
 
 describe('podeAcessar', () => {
   it('admin acessa todos os módulos', () => {
@@ -21,6 +22,7 @@ describe('podeAcessar', () => {
     expect(podeAcessar({ ...base, pode_materia_prima: true }, 'materia_prima')).toBe(true)
     expect(podeAcessar({ ...base, pode_clientes: true }, 'clientes')).toBe(true)
     expect(podeAcessar({ ...base, pode_pedidos: true }, 'pedidos')).toBe(true)
+    expect(podeAcessar({ ...base, pode_produtos: true }, 'produtos')).toBe(true)
   })
   it('funcionarios só para admin', () => {
     const p = { ...base, pode_materia_prima: true, pode_estoque: true, pode_clientes: true, pode_pedidos: true }

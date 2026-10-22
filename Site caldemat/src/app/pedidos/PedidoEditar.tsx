@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import type { Cliente } from '../../types'
+import type { Cliente, Produto } from '../../types'
 import { listarClientes } from '../clientes/clientes.api'
+import { listarProdutos } from '../produtos/produtos.api'
 import { obterPedido, editarPedido, type PedidoInput } from './pedidos.api'
 import PedidoForm, { type PedidoFormValor } from './PedidoForm'
 
@@ -12,6 +13,7 @@ export default function PedidoEditar() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const [clientes, setClientes] = useState<Cliente[]>([])
+  const [produtos, setProdutos] = useState<Produto[]>([])
   const [inicial, setInicial] = useState<PedidoFormValor | null>(null)
   const [dataTexto, setDataTexto] = useState('')
   const [loading, setLoading] = useState(true)
@@ -22,16 +24,26 @@ export default function PedidoEditar() {
     try {
       const [{ pedido, itens }, cs] = await Promise.all([obterPedido(id), listarClientes()])
       setClientes(cs)
+      try {
+        setProdutos(await listarProdutos())
+      } catch {
+        setProdutos([])
+      }
       setDataTexto(new Date(pedido.data).toLocaleDateString('pt-BR'))
+      const medida = (n?: number | null) => (n === null || n === undefined ? '' : String(n))
       setInicial({
         cliente_id: pedido.cliente_id,
         obs: pedido.obs ?? '',
         prazo_entrega: pedido.prazo_entrega ?? '',
         forma_pagamento: pedido.forma_pagamento ?? '',
         itens: itens.map((i) => ({
+          produto_id: i.produto_id ?? '',
           descricao: i.descricao,
+          descricao_adicional: i.descricao_adicional ?? '',
           quantidade: String(i.quantidade),
           valor: valorBR(i.valor_unitario),
+          largura: medida(i.largura),
+          altura: medida(i.altura),
           obs: i.obs ?? '',
         })),
       })
@@ -68,6 +80,7 @@ export default function PedidoEditar() {
       </div>
       <PedidoForm
         clientes={clientes}
+        produtos={produtos}
         inicial={inicial}
         dataTexto={dataTexto}
         textoBotao="Salvar alterações"

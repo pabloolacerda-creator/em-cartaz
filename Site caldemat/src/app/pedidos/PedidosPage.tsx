@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { Cliente, Pedido } from '../../types'
+import type { Cliente, Pedido, Produto } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
+import { formatNumero } from '../../lib/numero'
 import { listarClientes } from '../clientes/clientes.api'
+import { listarProdutos } from '../produtos/produtos.api'
 import { listarPedidos, criarPedido, type PedidoInput } from './pedidos.api'
 import { STATUS, statusDe } from './status'
 import PedidoForm from './PedidoForm'
@@ -19,6 +21,7 @@ const dataBR = (iso: string) => {
 export default function PedidosPage() {
   const [pedidos, setPedidos] = useState<Linha[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
+  const [produtos, setProdutos] = useState<Produto[]>([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [busca, setBusca] = useState('')
@@ -29,6 +32,12 @@ export default function PedidosPage() {
       const [p, c] = await Promise.all([listarPedidos(), listarClientes()])
       setPedidos(p)
       setClientes(c)
+      // Catálogo de produtos é tolerante a falha (ex.: migração ainda não aplicada).
+      try {
+        setProdutos(await listarProdutos())
+      } catch {
+        setProdutos([])
+      }
     } catch (e) {
       setErro(msg(e))
     } finally {
@@ -49,7 +58,12 @@ export default function PedidosPage() {
     const q = busca.trim().toLowerCase()
     if (!q) return pedidos
     return pedidos.filter(
-      (p) => (p.cliente_nome ?? '').toLowerCase().includes(q) || dataBR(p.data).includes(q) || p.data.includes(q),
+      (p) =>
+        (p.cliente_nome ?? '').toLowerCase().includes(q) ||
+        dataBR(p.data).includes(q) ||
+        p.data.includes(q) ||
+        formatNumero(p.numero).includes(q) ||
+        String(p.numero ?? '').includes(q),
     )
   }, [pedidos, busca])
 
@@ -69,6 +83,7 @@ export default function PedidosPage() {
         <h2 className="font-medium">Novo pedido</h2>
         <PedidoForm
           clientes={clientes}
+          produtos={produtos}
           dataTexto={new Date().toLocaleDateString('pt-BR')}
           textoBotao="Salvar pedido"
           limparAoSalvar
@@ -90,7 +105,8 @@ export default function PedidosPage() {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b">
-                <th className="py-2">Data</th>
+                <th className="py-2">Nº</th>
+                <th>Data</th>
                 <th>Cliente</th>
                 <th>Status</th>
                 <th className="text-right">Total</th>
@@ -102,7 +118,8 @@ export default function PedidosPage() {
                 const st = statusDe(p.status)
                 return (
                   <tr key={p.id} className="border-b">
-                    <td className="py-2">{dataBR(p.data)}</td>
+                    <td className="py-2">{formatNumero(p.numero) || '—'}</td>
+                    <td>{dataBR(p.data)}</td>
                     <td>{p.cliente_nome ?? '—'}</td>
                     <td>
                       <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS[st].cls}`}>{STATUS[st].rotulo}</span>

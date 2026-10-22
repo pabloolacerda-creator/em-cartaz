@@ -2,6 +2,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Pedido, PedidoItem } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
+import { formatNumero } from '../../lib/numero'
 import { EMPRESA } from '../../lib/empresa'
 import { obterPedido, aprovarPedido, reprovarPedido, faturarPedido } from './pedidos.api'
 import { STATUS, statusDe } from './status'
@@ -9,6 +10,13 @@ import { STATUS, statusDe } from './status'
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 const dataHoraBR = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR') : '—')
 const dataBR = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('pt-BR') : '—')
+const num = (n: number) => n.toLocaleString('pt-BR')
+const linhaTotal = (i: PedidoItem) => i.valor_total ?? Math.round(i.quantidade * i.valor_unitario * 100) / 100
+const medidasDe = (i: PedidoItem) => {
+  if (i.largura && i.altura) return `Medidas: ${num(i.largura)} × ${num(i.altura)} m`
+  if (i.largura) return `Comprimento: ${num(i.largura)} m`
+  return ''
+}
 
 function Dado({ rotulo, valor }: { rotulo: string; valor?: string | null }) {
   return (
@@ -69,7 +77,7 @@ export default function PedidoDetalhe() {
   if (!pedido) return null
 
   const status = statusDe(pedido.status)
-  const total = itens.reduce((s, i) => s + Math.round(i.quantidade * i.valor_unitario * 100), 0) / 100
+  const total = itens.reduce((s, i) => s + Math.round(linhaTotal(i) * 100), 0) / 100
   const contato = [pedido.cliente_telefone, pedido.cliente_email].filter(Boolean).join(' · ')
 
   return (
@@ -86,7 +94,12 @@ export default function PedidoDetalhe() {
       </header>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Pedido</h1>
+        <div>
+          <h1 className="text-xl font-semibold">Pedido{pedido.numero ? ` nº ${formatNumero(pedido.numero)}` : ''}</h1>
+          {pedido.fatura_numero ? (
+            <div className="text-sm text-gray-600">Fatura nº {formatNumero(pedido.fatura_numero)}</div>
+          ) : null}
+        </div>
         <span className={`rounded px-3 py-1 text-sm font-medium ${STATUS[status].cls}`}>{STATUS[status].rotulo}</span>
       </div>
 
@@ -123,14 +136,20 @@ export default function PedidoDetalhe() {
             </thead>
             <tbody>
               {itens.map((i) => {
-                const totalLinha = Math.round(i.quantidade * i.valor_unitario * 100) / 100
+                const medidas = medidasDe(i)
                 return (
                   <Fragment key={i.id}>
                     <tr className={i.obs ? '' : 'border-b'}>
-                      <td className="py-2 pr-3 align-top font-medium">{i.descricao}</td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right align-top">{i.quantidade.toLocaleString('pt-BR')}</td>
+                      <td className="py-2 pr-3 align-top">
+                        <div className="font-medium">{i.descricao}</div>
+                        {i.descricao_adicional && <div className="text-sm text-gray-600">{i.descricao_adicional}</div>}
+                        {medidas && <div className="text-xs text-gray-500">{medidas}</div>}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-right align-top">
+                        {num(i.quantidade)}{i.unidade ? ` ${i.unidade}` : ''}
+                      </td>
                       <td className="whitespace-nowrap px-3 py-2 text-right align-top">{formatMoedaBR(i.valor_unitario)}</td>
-                      <td className="whitespace-nowrap py-2 pl-3 text-right align-top">{formatMoedaBR(totalLinha)}</td>
+                      <td className="whitespace-nowrap py-2 pl-3 text-right align-top">{formatMoedaBR(linhaTotal(i))}</td>
                     </tr>
                     {i.obs && (
                       <tr className="border-b">

@@ -155,6 +155,29 @@ describe('pedidos.api', () => {
     ])
   })
 
+  it('criarPedido envia os campos de item de produto (produto_id, medidas, descrição adicional)', async () => {
+    const qp = ok({ id: 'p1' })
+    const qi = ok(null)
+    from.mockReturnValueOnce(qp).mockReturnValueOnce(qi)
+    await criarPedido({
+      cliente_id: 'c1',
+      itens: [
+        { descricao: 'Lona 440', quantidade: 2, valor_unitario: 120, produto_id: 'prod1', largura: 1.5, altura: 2, descricao_adicional: 'reforçada' },
+      ],
+    })
+    expect(qi.insert).toHaveBeenCalledWith([
+      { pedido_id: 'p1', descricao: 'Lona 440', quantidade: 2, valor_unitario: 120, produto_id: 'prod1', largura: 1.5, altura: 2, descricao_adicional: 'reforçada' },
+    ])
+  })
+
+  it('obterPedido/listarPedidos expõem o número nativo do pedido', async () => {
+    const ped = { id: 'p1', cliente_id: 'c1', data: 'd', obs: null, usuario_id: null, numero: 7, fatura_numero: 3 }
+    from.mockReturnValueOnce(ok(ped)).mockReturnValueOnce(ok([]))
+    const { pedido } = await obterPedido('p1')
+    expect(pedido.numero).toBe(7)
+    expect(pedido.fatura_numero).toBe(3)
+  })
+
   it('obterPedido traz os dados do cliente (documento, endereço, contato)', async () => {
     const ped = {
       id: 'p1', cliente_id: 'c1', data: 'd', obs: null, usuario_id: null,
