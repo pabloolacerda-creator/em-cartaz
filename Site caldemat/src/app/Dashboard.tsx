@@ -17,6 +17,7 @@ const CADASTRO_SUBS: Item[] = [
 const OPERACAO: Item[] = [
   { modulo: 'estoque', rotulo: 'Estoque', to: '/app/estoque' },
   { modulo: 'pedidos', rotulo: 'Pedidos', to: '/app/pedidos' },
+  { modulo: 'pedidos', rotulo: 'Calculadora', to: '/app/calculadora' },
   { modulo: 'financeiro', rotulo: 'Financeiro', to: '/app/financeiro' },
 ]
 
@@ -58,7 +59,7 @@ export default function Dashboard() {
             </NavLink>
           )}
           {OPERACAO.filter((a) => podeAcessar(perfil, a.modulo)).map((a) => (
-            <NavLink key={a.modulo} to={a.to} className={linkCls}>
+            <NavLink key={a.to} to={a.to} className={linkCls}>
               {a.rotulo}
             </NavLink>
           ))}

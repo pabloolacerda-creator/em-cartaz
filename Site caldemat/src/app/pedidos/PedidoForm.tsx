@@ -2,6 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import type { Cliente, Produto } from '../../types'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
 import { calcularTotais, type TipoDesconto } from '../../lib/desconto'
+import { CHAPAS, calcularChapa } from '../../lib/chapa'
 import { modoMedida, calcularValorItem } from './calculo'
 import type { ItemInput, PedidoInput } from './pedidos.api'
 
@@ -17,7 +18,12 @@ export type ItemForm = {
   largura: string
   altura: string
   obs: string
+  // Modo "Calcular chapa": espessura (pol.) e valor do kg. Largura/altura = largura/comprimento.
+  chapa_pol?: string
+  preco_kg?: string
 }
+// Valor especial do seletor: item calculado pela tabela de chapas (vira item livre ao salvar).
+export const CHAPA = '__chapa__'
 export const ITEM_VAZIO: ItemForm = {
   produto_id: '', descricao: '', descricao_adicional: '', quantidade: '1', valor: '', largura: '', altura: '', obs: '',
 }
@@ -75,7 +81,22 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
   const clienteSel = useMemo(() => clientes.find((c) => c.id === clienteId), [clientes, clienteId])
   const produtoDe = (it: ItemForm) => produtos.find((p) => p.id === it.produto_id)
 
+  const chapaDe = (it: ItemForm) => CHAPAS.find((c) => c.pol === it.chapa_pol) ?? CHAPAS[0]
+  // Custo de UMA peça de chapa (área × kg/m² × R$/kg).
+  const chapaUnit = (it: ItemForm) =>
+    calcularChapa({
+      kgm2: chapaDe(it).kgm2,
+      largura: parseMedida(it.largura),
+      comprimento: parseMedida(it.altura),
+      quantidade: 1,
+      precoKg: parseMoedaBR((it.preco_kg ?? '').trim()),
+    })
+
   const totalItem = (it: ItemForm): number => {
+    if (it.produto_id === CHAPA) {
+      const q = parseQtd(it.quantidade)
+      return Number.isNaN(q) ? 0 : Math.round(q * chapaUnit(it).custoTotal * 100) / 100
+    }
     const prod = produtoDe(it)
     if (it.produto_id && prod) {
       return calcularValorItem(prod.unidade, parseQtd(it.quantidade), parseMedida(it.largura), parseMedida(it.altura), prod.valor_venda)
@@ -114,6 +135,23 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
       const it = itens[n]
       const quantidade = parseQtd(it.quantidade)
       if (!(quantidade > 0)) return setErro(`Item ${n + 1}: a quantidade deve ser maior que zero.`)
+      if (it.produto_id === CHAPA) {
+        const c = chapaDe(it)
+        const l = parseMedida(it.largura)
+        const comp = parseMedida(it.altura)
+        const preco = parseMoedaBR((it.preco_kg ?? '').trim())
+        if (!(l > 0) || !(comp > 0)) return setErro(`Item ${n + 1}: informe largura e comprimento da chapa.`)
+        if (!(preco > 0)) return setErro(`Item ${n + 1}: informe o valor do kg.`)
+        const u = chapaUnit(it)
+        const f = (x: number) => x.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 3 })
+        out.push({
+          descricao: `Chapa ${c.pol} (${f(c.mm)} mm) ${f(l)} × ${f(comp)} m — ${f(u.pesoUnit)} kg/pç`,
+          quantidade,
+          valor_unitario: u.custoTotal,
+          obs: it.obs.trim() || null,
+        })
+        continue
+      }
       if (it.produto_id) {
         const prod = produtoDe(it)
         if (!prod) return setErro(`Item ${n + 1}: selecione um produto válido.`)
@@ -231,7 +269,8 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
       <section className={bloco}>
         <h3 className={tituloBloco}>Produtos e Serviços</h3>
         {itens.map((it, i) => {
-          const prod = produtoDe(it)
+          const isChapa = it.produto_id === CHAPA
+          const prod = isChapa ? undefined : produtoDe(it)
           const modo = prod ? modoMedida(prod.unidade) : null
           return (
             <div key={i} className="rounded border border-gray-200 p-3 space-y-2">
@@ -240,12 +279,22 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
                   <label htmlFor={`ped-prod-${i}`} className="block text-sm">Produto/serviço</label>
                   <select id={`ped-prod-${i}`} className={campo} value={it.produto_id} onChange={(e) => setItem(i, 'produto_id', e.target.value)}>
                     <option value="">— Descrição livre —</option>
+                    <option value={CHAPA}>— Calcular chapa —</option>
                     {produtos.map((p) => (
                       <option key={p.id} value={p.id}>{p.nome}</option>
                     ))}
                   </select>
                 </div>
-                {it.produto_id ? (
+                {isChapa ? (
+                  <div>
+                    <label htmlFor={`ped-esp-${i}`} className="block text-sm">Espessura</label>
+                    <select id={`ped-esp-${i}`} className={campo} value={it.chapa_pol ?? CHAPAS[0].pol} onChange={(e) => setItem(i, 'chapa_pol', e.target.value)}>
+                      {CHAPAS.map((c) => (
+                        <option key={c.pol} value={c.pol}>{c.pol} — {c.kgm2.toLocaleString('pt-BR')} kg/m²</option>
+                      ))}
+                    </select>
+                  </div>
+                ) : it.produto_id ? (
                   <div>
                     <label htmlFor={`ped-descadic-${i}`} className="block text-sm">Descrição adicional</label>
                     <input id={`ped-descadic-${i}`} className={campo} value={it.descricao_adicional} onChange={(e) => setItem(i, 'descricao_adicional', e.target.value)} />
@@ -259,6 +308,18 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
               </div>
 
               <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto_auto] sm:items-end">
+                {isChapa && (
+                  <>
+                    <div>
+                      <label htmlFor={`ped-larg-${i}`} className="block text-sm">Largura (m)</label>
+                      <input id={`ped-larg-${i}`} className={campo} inputMode="decimal" value={it.largura} onChange={(e) => setItem(i, 'largura', e.target.value)} />
+                    </div>
+                    <div>
+                      <label htmlFor={`ped-ccomp-${i}`} className="block text-sm">Comprimento (m)</label>
+                      <input id={`ped-ccomp-${i}`} className={campo} inputMode="decimal" value={it.altura} onChange={(e) => setItem(i, 'altura', e.target.value)} />
+                    </div>
+                  </>
+                )}
                 {modo === 'area' && (
                   <>
                     <div>
@@ -281,7 +342,12 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
                   <label htmlFor={`ped-qtd-${i}`} className="block text-sm">Quantidade</label>
                   <input id={`ped-qtd-${i}`} className={campo} inputMode="decimal" value={it.quantidade} onChange={(e) => setItem(i, 'quantidade', e.target.value)} />
                 </div>
-                {it.produto_id ? (
+                {isChapa ? (
+                  <div>
+                    <label htmlFor={`ped-kg-${i}`} className="block text-sm">Valor do kg (R$)</label>
+                    <input id={`ped-kg-${i}`} className={campo} inputMode="decimal" placeholder="0,00" value={it.preco_kg ?? ''} onChange={(e) => setItem(i, 'preco_kg', e.target.value)} />
+                  </div>
+                ) : it.produto_id ? (
                   <div>
                     <span className="block text-sm">{prod && modoMedida(prod.unidade) === 'area' ? 'Valor do m²' : 'Valor unitário'}</span>
                     <div className={campoRO}>{prod ? formatMoedaBR(prod.valor_venda) : '—'}</div>
@@ -293,9 +359,14 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
                   </div>
                 )}
                 <div className="py-2 text-sm">
-                  {modo === 'area' && (
+                  {(modo === 'area' || isChapa) && (
                     <div className="text-gray-600">
                       Área: <span data-testid={`area-item-${i}`}>{areaTxt(it)}</span>
+                    </div>
+                  )}
+                  {isChapa && (
+                    <div className="text-gray-600">
+                      Peso: <span data-testid={`peso-item-${i}`}>{chapaUnit(it).pesoUnit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} kg/pç</span>
                     </div>
                   )}
                   Total: <span data-testid={`total-item-${i}`}>{formatMoedaBR(totalItem(it))}</span>

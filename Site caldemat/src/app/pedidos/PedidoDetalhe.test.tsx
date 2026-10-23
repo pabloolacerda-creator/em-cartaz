@@ -83,6 +83,17 @@ describe('PedidoDetalhe', () => {
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeInTheDocument()
   })
 
+  it('botão Ordem de Serviço só aparece depois de aprovado', async () => {
+    api.obterPedido.mockResolvedValue(pedido('emitido'))
+    const { unmount } = abrir()
+    await screen.findByText('Emitido')
+    expect(screen.queryByRole('link', { name: /ordem de serviço/i })).toBeNull()
+    unmount()
+    api.obterPedido.mockResolvedValue(pedido('aprovado'))
+    abrir()
+    expect(await screen.findByRole('link', { name: /ordem de serviço/i })).toHaveAttribute('href', '/app/pedidos/p1/os')
+  })
+
   it('emitido se chama Orçamento; aprovado vira Pedido', async () => {
     api.obterPedido.mockResolvedValue({ ...pedido('emitido'), pedido: { ...pedido('emitido').pedido, numero: 9 } })
     const { unmount } = abrir()

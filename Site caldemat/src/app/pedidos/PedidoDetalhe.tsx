@@ -262,6 +262,11 @@ export default function PedidoDetalhe() {
         {status === 'aprovado' && (
           <button type="button" disabled={acaoEmCurso} onClick={() => setFaturando(true)} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">Faturar</button>
         )}
+        {(status === 'aprovado' || status === 'faturado') && (
+          <Link to={`/app/pedidos/${pedido.id}/os`} className="rounded bg-gray-900 px-4 py-2 text-white">
+            Ordem de Serviço{pedido.os_numero ? ` nº ${formatNumero(pedido.os_numero)}` : ''}
+          </Link>
+        )}
         <Link to={`/app/pedidos/${pedido.id}/editar`} className="rounded border px-4 py-2">Editar</Link>
         <button type="button" disabled={acaoEmCurso} onClick={gerarReceber} className="rounded border px-4 py-2 disabled:opacity-50">Gerar conta a receber</button>
         <button type="button" onClick={() => window.print()} className="rounded border px-4 py-2">Imprimir</button>
