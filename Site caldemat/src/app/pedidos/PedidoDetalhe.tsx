@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import type { Pedido, PedidoItem } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
 import { formatNumero } from '../../lib/numero'
+import { calcularTotais } from '../../lib/desconto'
 import { EMPRESA } from '../../lib/empresa'
 import { obterPedido, aprovarPedido, reprovarPedido, faturarPedido } from './pedidos.api'
 import { gerarContaReceber, lancarRecebimentosPedido, type Parcela } from '../financeiro/financeiro.api'
@@ -14,11 +15,19 @@ const dataHoraBR = (iso?: string | null) => (iso ? new Date(iso).toLocaleString(
 const dataBR = (iso?: string | null) => (iso ? new Date(iso).toLocaleDateString('pt-BR') : '—')
 const num = (n: number) => n.toLocaleString('pt-BR')
 const linhaTotal = (i: PedidoItem) => i.valor_total ?? Math.round(i.quantidade * i.valor_unitario * 100) / 100
+const m2 = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
 const medidasDe = (i: PedidoItem) => {
-  if (i.largura && i.altura) return `Medidas: ${num(i.largura)} × ${num(i.altura)} m`
+  if (i.largura && i.altura) {
+    const area = Math.round(i.largura * i.altura * 10000) / 10000
+    const total = Math.round(area * i.quantidade * 10000) / 10000
+    return `Medidas: ${num(i.largura)} × ${num(i.altura)} m = ${m2(area)} m²${i.quantidade > 1 ? ` (total ${m2(total)} m²)` : ''}`
+  }
   if (i.largura) return `Comprimento: ${num(i.largura)} m`
   return ''
 }
+// Até ser aprovado o documento é um Orçamento; depois vira Pedido.
+export const nomeDocumento = (status?: string | null) =>
+  status === 'aprovado' || status === 'faturado' ? 'Pedido' : 'Orçamento'
 
 function Dado({ rotulo, valor }: { rotulo: string; valor?: string | null }) {
   return (
@@ -81,7 +90,11 @@ export default function PedidoDetalhe() {
   if (!pedido) return null
 
   const status = statusDe(pedido.status)
-  const total = itens.reduce((s, i) => s + Math.round(linhaTotal(i) * 100), 0) / 100
+  const subtotal = itens.reduce((s, i) => s + Math.round(linhaTotal(i) * 100), 0) / 100
+  const totais = calcularTotais(subtotal, pedido.desconto, pedido.desconto_tipo)
+  // Total final (com desconto): é o que vai pra fatura e pro financeiro.
+  const total = totais.total
+  const doc = nomeDocumento(pedido.status)
   const contato = [pedido.cliente_telefone, pedido.cliente_email].filter(Boolean).join(' · ')
   const ped = pedido
 
@@ -131,7 +144,7 @@ export default function PedidoDetalhe() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Pedido{pedido.numero ? ` nº ${formatNumero(pedido.numero)}` : ''}</h1>
+          <h1 className="text-xl font-semibold">{doc}{pedido.numero ? ` nº ${formatNumero(pedido.numero)}` : ''}</h1>
           {pedido.fatura_numero ? (
             <div className="text-sm text-gray-600">Fatura nº {formatNumero(pedido.fatura_numero)}</div>
           ) : null}
@@ -203,8 +216,22 @@ export default function PedidoDetalhe() {
               })}
             </tbody>
             <tfoot>
+              {totais.descontoValor > 0 && (
+                <>
+                  <tr>
+                    <td colSpan={3} className="whitespace-nowrap pt-3 pr-3 text-right">Subtotal</td>
+                    <td className="whitespace-nowrap pt-3 pl-3 text-right">{formatMoedaBR(totais.subtotal)}</td>
+                  </tr>
+                  <tr>
+                    <td colSpan={3} className="whitespace-nowrap pr-3 text-right text-red-700">
+                      Desconto{pedido.desconto_tipo === 'percentual' ? ` (${num(Number(pedido.desconto))}%)` : ''}
+                    </td>
+                    <td className="whitespace-nowrap pl-3 text-right text-red-700">− {formatMoedaBR(totais.descontoValor)}</td>
+                  </tr>
+                </>
+              )}
               <tr>
-                <td colSpan={3} className="whitespace-nowrap py-3 pr-3 text-right font-medium">Total do pedido</td>
+                <td colSpan={3} className="whitespace-nowrap py-3 pr-3 text-right font-medium">Total {doc === 'Orçamento' ? 'do orçamento' : 'do pedido'}</td>
                 <td className="whitespace-nowrap py-3 pl-3 text-right font-semibold">{formatMoedaBR(total)}</td>
               </tr>
             </tfoot>

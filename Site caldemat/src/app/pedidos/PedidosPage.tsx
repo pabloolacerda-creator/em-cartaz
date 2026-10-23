@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { Cliente, Pedido, Produto } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
 import { formatNumero } from '../../lib/numero'
+import { calcularTotais } from '../../lib/desconto'
 import { dentroDoPeriodo, type Periodo } from '../../lib/periodo'
 import { listarClientes } from '../clientes/clientes.api'
 import { listarProdutos } from '../produtos/produtos.api'
@@ -104,12 +105,12 @@ export default function PedidosPage() {
       )}
 
       <div className="space-y-2 no-print">
-        <h2 className="font-medium">Novo pedido</h2>
+        <h2 className="font-medium">Novo orçamento</h2>
         <PedidoForm
           clientes={clientes}
           produtos={produtos}
           dataTexto={new Date().toLocaleDateString('pt-BR')}
-          textoBotao="Salvar pedido"
+          textoBotao="Salvar orçamento"
           limparAoSalvar
           onSubmit={criar}
         />
@@ -182,7 +183,7 @@ export default function PedidosPage() {
                     <td>
                       <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS[st].cls}`}>{STATUS[st].rotulo}</span>
                     </td>
-                    <td className="text-right">{formatMoedaBR(p.total)}</td>
+                    <td className="text-right">{formatMoedaBR(calcularTotais(p.total, p.desconto, p.desconto_tipo).total)}</td>
                     <td className="text-right no-print">
                       <Link to={`/app/pedidos/${p.id}`} className="underline">Abrir</Link>
                     </td>

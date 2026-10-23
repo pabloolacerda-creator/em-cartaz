@@ -26,6 +26,38 @@ describe('PedidoForm — item de produto', () => {
     expect(norm(screen.getByTestId('total-item-0').textContent)).toBe('R$ 360,00')
   })
 
+  it('produto m² mostra a área calculada antes do valor', () => {
+    setup()
+    fireEvent.change(screen.getByLabelText(/produto\/serviço/i), { target: { value: 'pr1' } })
+    fireEvent.change(screen.getByLabelText(/largura/i), { target: { value: '1,5' } })
+    fireEvent.change(screen.getByLabelText(/altura/i), { target: { value: '2' } })
+    expect(screen.getByTestId('area-item-0').textContent).toBe('3,00 m²')
+    fireEvent.change(screen.getByLabelText(/quantidade/i), { target: { value: '2' } })
+    expect(screen.getByTestId('area-item-0').textContent).toBe('3,00 m² × 2 = 6,00 m²')
+  })
+
+  it('desconto em % e em R$ reduz o total', () => {
+    setup()
+    fireEvent.change(screen.getByLabelText(/produto\/serviço/i), { target: { value: 'pr2' } }) // 2,00 por unidade
+    fireEvent.change(screen.getByLabelText(/quantidade/i), { target: { value: '50' } }) // subtotal 100
+    expect(norm(screen.getByTestId('subtotal-pedido').textContent)).toBe('R$ 100,00')
+    fireEvent.change(screen.getByLabelText(/^desconto$/i), { target: { value: '10' } })
+    expect(norm(screen.getByTestId('total-pedido').textContent)).toBe('R$ 90,00') // R$ 10
+    fireEvent.change(screen.getByLabelText(/tipo de desconto/i), { target: { value: 'percentual' } })
+    fireEvent.change(screen.getByLabelText(/^desconto$/i), { target: { value: '25' } })
+    expect(norm(screen.getByTestId('total-pedido').textContent)).toBe('R$ 75,00') // 25%
+  })
+
+  it('envia o desconto escolhido', async () => {
+    const onSubmit = setup()
+    fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
+    fireEvent.change(screen.getByLabelText(/produto\/serviço/i), { target: { value: 'pr2' } })
+    fireEvent.change(screen.getByLabelText(/tipo de desconto/i), { target: { value: 'percentual' } })
+    fireEvent.change(screen.getByLabelText(/^desconto$/i), { target: { value: '10' } })
+    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ desconto: 10, desconto_tipo: 'percentual' })))
+  })
+
   it('produto por unidade esconde medidas e calcula qtd × valor', () => {
     setup()
     fireEvent.change(screen.getByLabelText(/produto\/serviço/i), { target: { value: 'pr2' } })
@@ -48,6 +80,8 @@ describe('PedidoForm — item de produto', () => {
       obs: null,
       prazo_entrega: null,
       forma_pagamento: null,
+      desconto: 0,
+      desconto_tipo: 'valor',
       itens: [
         { descricao: 'Lona 440', quantidade: 1, valor_unitario: 120, produto_id: 'pr1', largura: 1.5, altura: 2, descricao_adicional: 'reforçada', obs: null },
       ],

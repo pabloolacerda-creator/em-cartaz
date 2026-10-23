@@ -74,13 +74,15 @@ describe('PedidosPage', () => {
     setItem(0, '  Cimento ', '2', '1.234,56')
     fireEvent.click(screen.getByRole('button', { name: /adicionar item/i }))
     setItem(1, 'Areia', '1', '10')
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     await waitFor(() => expect(api.criarPedido).toHaveBeenCalledTimes(1))
     expect(api.criarPedido).toHaveBeenCalledWith({
       cliente_id: 'c2',
       obs: null,
       prazo_entrega: null,
       forma_pagamento: null,
+      desconto: 0,
+      desconto_tipo: 'valor',
       itens: [
         { descricao: 'Cimento', quantidade: 2, valor_unitario: 1234.56, obs: null },
         { descricao: 'Areia', quantidade: 1, valor_unitario: 10, obs: null },
@@ -94,7 +96,7 @@ describe('PedidosPage', () => {
     fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
     setItem(0, 'Cimento', '2', 'abc')
     expect(screen.getByTestId('total-pedido').textContent).not.toMatch(/NaN/)
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/valor/i)
     expect(api.criarPedido).not.toHaveBeenCalled()
   })
@@ -102,14 +104,14 @@ describe('PedidosPage', () => {
   it('exige cliente, descrição e quantidade > 0', async () => {
     await pronto()
     setItem(0, 'X', '1', '1')
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/cliente/i)
     fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
     setItem(0, '   ', '1', '1')
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/descrição/i)
     setItem(0, 'X', '0', '1')
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/quantidade/i)
     expect(api.criarPedido).not.toHaveBeenCalled()
   })
@@ -141,9 +143,9 @@ describe('PedidosPage', () => {
     await pronto()
     fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
     setItem(0, 'X', '1', '1,00')
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/falhou/)
-    expect(screen.getByRole('button', { name: /salvar pedido/i })).toBeEnabled()
+    expect(screen.getByRole('button', { name: /salvar orçamento/i })).toBeEnabled()
   })
 
   it('mostra o número do pedido e permite buscar por ele', async () => {
@@ -182,13 +184,15 @@ describe('PedidosPage', () => {
     fireEvent.change(screen.getByLabelText('Observação do item 1'), { target: { value: 'inox 304' } })
     fireEvent.change(screen.getByLabelText(/prazo de entrega/i), { target: { value: '30 dias' } })
     fireEvent.change(screen.getByLabelText(/formas de pagamento/i), { target: { value: 'Pix' } })
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
+    fireEvent.click(screen.getByRole('button', { name: /salvar orçamento/i }))
     await waitFor(() => expect(api.criarPedido).toHaveBeenCalledTimes(1))
     expect(api.criarPedido).toHaveBeenCalledWith({
       cliente_id: 'c1',
       obs: null,
       prazo_entrega: '30 dias',
       forma_pagamento: 'Pix',
+      desconto: 0,
+      desconto_tipo: 'valor',
       itens: [{ descricao: 'Tanque', quantidade: 1, valor_unitario: 100, obs: 'inox 304' }],
     })
   })

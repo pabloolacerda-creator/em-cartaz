@@ -83,6 +83,29 @@ describe('PedidoDetalhe', () => {
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeInTheDocument()
   })
 
+  it('emitido se chama Orçamento; aprovado vira Pedido', async () => {
+    api.obterPedido.mockResolvedValue({ ...pedido('emitido'), pedido: { ...pedido('emitido').pedido, numero: 9 } })
+    const { unmount } = abrir()
+    expect(await screen.findByRole('heading', { name: /orçamento nº 000009/i })).toBeInTheDocument()
+    unmount()
+    api.obterPedido.mockResolvedValue({ ...pedido('aprovado'), pedido: { ...pedido('aprovado').pedido, numero: 9 } })
+    abrir()
+    expect(await screen.findByRole('heading', { name: /pedido nº 000009/i })).toBeInTheDocument()
+  })
+
+  it('mostra subtotal, desconto em % e total final (visível na impressão)', async () => {
+    api.obterPedido.mockResolvedValue({
+      pedido: { ...pedido('aprovado').pedido, desconto: 10, desconto_tipo: 'percentual' },
+      itens: [{ id: 'i1', pedido_id: 'p1', descricao: 'Tanque', quantidade: 1, valor_unitario: 1000 }],
+    })
+    abrir()
+    expect(await screen.findByText(/desconto \(10%\)/i)).toBeInTheDocument()
+    const txt = (document.body.textContent ?? '').replace(/\s/g, ' ')
+    expect(txt).toContain('R$ 1.000,00') // subtotal
+    expect(txt).toContain('− R$ 100,00') // desconto
+    expect(txt).toContain('R$ 900,00') // total
+  })
+
   it('Gerar conta a receber chama a api com os dados do pedido', async () => {
     fin.gerarContaReceber.mockResolvedValue(undefined)
     api.obterPedido.mockResolvedValue({

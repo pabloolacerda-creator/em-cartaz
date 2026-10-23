@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import type { Cliente, Produto } from '../../types'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
+import { calcularTotais, type TipoDesconto } from '../../lib/desconto'
 import { modoMedida, calcularValorItem } from './calculo'
 import type { ItemInput, PedidoInput } from './pedidos.api'
 
@@ -26,10 +27,14 @@ export type PedidoFormValor = {
   obs: string
   prazo_entrega: string
   forma_pagamento: string
+  desconto: string
+  desconto_tipo: TipoDesconto
   itens: ItemForm[]
 }
 
-const VALOR_VAZIO: PedidoFormValor = { cliente_id: '', obs: '', prazo_entrega: '', forma_pagamento: '', itens: [ITEM_VAZIO] }
+const VALOR_VAZIO: PedidoFormValor = {
+  cliente_id: '', obs: '', prazo_entrega: '', forma_pagamento: '', desconto: '', desconto_tipo: 'valor', itens: [ITEM_VAZIO],
+}
 
 const parseQtd = (s: string) => {
   const t = s.trim().replace(',', '.')
@@ -61,6 +66,8 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
   const [obs, setObs] = useState(base.obs)
   const [prazo, setPrazo] = useState(base.prazo_entrega)
   const [forma, setForma] = useState(base.forma_pagamento)
+  const [desconto, setDesconto] = useState(base.desconto ?? '')
+  const [descontoTipo, setDescontoTipo] = useState<TipoDesconto>(base.desconto_tipo ?? 'valor')
   const [itens, setItens] = useState<ItemForm[]>(base.itens.length ? base.itens : [ITEM_VAZIO])
   const [erro, setErro] = useState<string | null>(null)
   const [salvando, setSalvando] = useState(false)
@@ -82,6 +89,18 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [itens, produtos],
   )
+  // Área total do item em m² (largura × altura × quantidade), mostrada antes do valor.
+  const areaTxt = (it: ItemForm) => {
+    const l = parseMedida(it.largura)
+    const a = parseMedida(it.altura)
+    const q = parseQtd(it.quantidade)
+    if (!(l > 0) || !(a > 0)) return '—'
+    const unit = Math.round(l * a * 10000) / 10000
+    const fmt = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+    return q > 1 ? `${fmt(unit)} m² × ${q} = ${fmt(Math.round(unit * q * 10000) / 10000)} m²` : `${fmt(unit)} m²`
+  }
+  const descontoNum = desconto.trim() === '' ? 0 : parseMoedaBR(desconto.trim())
+  const totais = calcularTotais(totalPedido, descontoNum, descontoTipo)
 
   const setItem = (idx: number, k: keyof ItemForm, v: string) =>
     setItens((p) => p.map((it, i) => (i === idx ? { ...it, [k]: v } : it)))
@@ -127,6 +146,8 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
       }
     }
     if (out.length === 0) return setErro('Adicione ao menos um item.')
+    if (Number.isNaN(descontoNum) || descontoNum < 0) return setErro('Desconto inválido (ex.: 100,00 ou 10).')
+    if (descontoTipo === 'percentual' && descontoNum > 100) return setErro('Desconto em % não pode passar de 100.')
     setErro(null)
     setSalvando(true)
     try {
@@ -135,6 +156,8 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
         obs: obs.trim() || null,
         prazo_entrega: prazo.trim() || null,
         forma_pagamento: forma.trim() || null,
+        desconto: descontoNum,
+        desconto_tipo: descontoTipo,
         itens: out,
       })
       if (limparAoSalvar) {
@@ -142,6 +165,8 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
         setObs('')
         setPrazo('')
         setForma('')
+        setDesconto('')
+        setDescontoTipo('valor')
         setItens([ITEM_VAZIO])
       }
     } catch (err) {
@@ -268,6 +293,11 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
                   </div>
                 )}
                 <div className="py-2 text-sm">
+                  {modo === 'area' && (
+                    <div className="text-gray-600">
+                      Área: <span data-testid={`area-item-${i}`}>{areaTxt(it)}</span>
+                    </div>
+                  )}
                   Total: <span data-testid={`total-item-${i}`}>{formatMoedaBR(totalItem(it))}</span>
                 </div>
                 <div>
@@ -291,9 +321,45 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
           <button type="button" className="rounded border px-4 py-2" onClick={() => setItens((p) => [...p, ITEM_VAZIO])}>
             Adicionar item
           </button>
-          <p className="font-medium">
-            Total do pedido: <span data-testid="total-pedido">{formatMoedaBR(totalPedido)}</span>
-          </p>
+        </div>
+
+        <div className="ml-auto max-w-sm space-y-2 rounded border border-gray-200 p-3">
+          <div className="flex justify-between text-sm">
+            <span>Subtotal</span>
+            <span data-testid="subtotal-pedido">{formatMoedaBR(totais.subtotal)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <label htmlFor="ped-desconto">Desconto</label>
+            <div className="flex items-center gap-1">
+              <input
+                id="ped-desconto"
+                className="w-28 rounded border border-gray-300 px-2 py-1 text-right"
+                inputMode="decimal"
+                placeholder="0"
+                value={desconto}
+                onChange={(e) => setDesconto(e.target.value)}
+              />
+              <select
+                aria-label="Tipo de desconto"
+                className="rounded border border-gray-300 px-2 py-1"
+                value={descontoTipo}
+                onChange={(e) => setDescontoTipo(e.target.value as TipoDesconto)}
+              >
+                <option value="valor">R$</option>
+                <option value="percentual">%</option>
+              </select>
+            </div>
+          </div>
+          {totais.descontoValor > 0 && (
+            <div className="flex justify-between text-sm text-red-700">
+              <span>− Desconto{descontoTipo === 'percentual' ? ` (${desconto.trim()}%)` : ''}</span>
+              <span>{formatMoedaBR(totais.descontoValor)}</span>
+            </div>
+          )}
+          <div className="flex justify-between border-t pt-2 font-semibold">
+            <span>Total do pedido</span>
+            <span data-testid="total-pedido">{formatMoedaBR(totais.total)}</span>
+          </div>
         </div>
       </section>
 

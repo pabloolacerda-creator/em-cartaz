@@ -5,7 +5,7 @@ const getUser = vi.fn()
 const rpc = vi.fn()
 vi.mock('../../lib/supabase', () => ({ supabase: { from: (...a: any[]) => from(...a), auth: { getUser: (...a: any[]) => getUser(...a) }, rpc: (...a: any[]) => rpc(...a) } }))
 
-import { criarPedido, listarPedidos, obterPedido, editarPedido, aprovarPedido, reprovarPedido, faturarPedido, listarUsuariosNomes } from './pedidos.api'
+import { criarPedido, listarPedidos, obterPedido, editarPedido, aprovarPedido, reprovarPedido, faturarPedido, listarUsuariosNomes, gerarOS, salvarObsProducao } from './pedidos.api'
 
 const thenable = (result: any) => {
   const o: any = {}
@@ -131,6 +131,27 @@ describe('pedidos.api', () => {
   it('aprovarPedido lança erro do supabase', async () => {
     from.mockReturnValueOnce(fail('e'))
     await expect(aprovarPedido('p1')).rejects.toMatchObject({ message: 'e' })
+  })
+
+  it('criarPedido repassa desconto e tipo quando informados', async () => {
+    const qp = ok({ id: 'p1' })
+    from.mockReturnValueOnce(qp).mockReturnValueOnce(ok(null))
+    await criarPedido({ cliente_id: 'c1', desconto: 10, desconto_tipo: 'percentual', itens })
+    expect(qp.insert).toHaveBeenCalledWith(expect.objectContaining({ desconto: 10, desconto_tipo: 'percentual' }))
+  })
+
+  it('gerarOS chama a função gerar_os e devolve o número', async () => {
+    rpc.mockResolvedValue({ data: 5, error: null })
+    expect(await gerarOS('p1')).toBe(5)
+    expect(rpc).toHaveBeenCalledWith('gerar_os', { p_id: 'p1' })
+  })
+
+  it('salvarObsProducao grava a obs interna', async () => {
+    const q = ok(null)
+    from.mockReturnValueOnce(q)
+    await salvarObsProducao('p1', 'cortar com folga')
+    expect(q.update).toHaveBeenCalledWith({ obs_producao: 'cortar com folga' })
+    expect(q.eq).toHaveBeenCalledWith('id', 'p1')
   })
 
   it('listarUsuariosNomes chama a função usuarios_nomes', async () => {

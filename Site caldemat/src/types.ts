@@ -112,6 +112,12 @@ export type Pedido = {
   // Numeração nativa do sistema (imutável)
   numero?: number | null
   fatura_numero?: number | null
+  // Ordem de Serviço (número gerado ao emitir a OS) e observação interna de produção
+  os_numero?: number | null
+  obs_producao?: string | null
+  // Desconto do orçamento/pedido
+  desconto?: number | null
+  desconto_tipo?: 'valor' | 'percentual' | null
   // Informações adicionais (bloco 3)
   prazo_entrega?: string | null
   forma_pagamento?: string | null

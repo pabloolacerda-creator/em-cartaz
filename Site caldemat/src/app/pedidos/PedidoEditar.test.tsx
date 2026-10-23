@@ -57,6 +57,8 @@ describe('PedidoEditar', () => {
       obs: 'nota',
       prazo_entrega: '10 dias',
       forma_pagamento: 'Boleto',
+      desconto: 0,
+      desconto_tipo: 'valor',
       itens: [{ descricao: 'Tanque aéreo', quantidade: 2, valor_unitario: 1500, obs: 'inox' }],
     })
     // volta para a tela de detalhe

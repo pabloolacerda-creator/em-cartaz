@@ -18,6 +18,8 @@ export type PedidoInput = {
   obs?: string | null
   prazo_entrega?: string | null
   forma_pagamento?: string | null
+  desconto?: number
+  desconto_tipo?: 'valor' | 'percentual'
   itens: ItemInput[]
 }
 
@@ -27,11 +29,25 @@ function unwrap<T>(r: { data: T; error: unknown }): T {
 }
 
 // Inclui no payload só os campos adicionais realmente informados.
-function camposAdicionais(p: Pick<PedidoInput, 'prazo_entrega' | 'forma_pagamento'>) {
+function camposAdicionais(p: Pick<PedidoInput, 'prazo_entrega' | 'forma_pagamento' | 'desconto' | 'desconto_tipo'>) {
   return {
     ...(p.prazo_entrega !== undefined ? { prazo_entrega: p.prazo_entrega } : {}),
     ...(p.forma_pagamento !== undefined ? { forma_pagamento: p.forma_pagamento } : {}),
+    ...(p.desconto !== undefined ? { desconto: p.desconto } : {}),
+    ...(p.desconto_tipo !== undefined ? { desconto_tipo: p.desconto_tipo } : {}),
   }
+}
+
+// Grava a observação interna de produção (usada na Ordem de Serviço).
+export async function salvarObsProducao(id: string, obs: string | null): Promise<void> {
+  unwrap(await supabase.from('pedidos').update({ obs_producao: obs }).eq('id', id))
+}
+
+// Garante (uma vez) o número da OS do pedido e devolve.
+export async function gerarOS(id: string): Promise<number> {
+  const { data, error } = await supabase.rpc('gerar_os', { p_id: id })
+  if (error) throw error
+  return Number(data)
 }
 
 export async function criarPedido(p: PedidoInput): Promise<{ id: string }> {

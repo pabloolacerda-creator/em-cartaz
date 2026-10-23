@@ -36,6 +36,8 @@ export default function PedidoEditar() {
         obs: pedido.obs ?? '',
         prazo_entrega: pedido.prazo_entrega ?? '',
         forma_pagamento: pedido.forma_pagamento ?? '',
+        desconto: pedido.desconto ? String(pedido.desconto).replace('.', ',') : '',
+        desconto_tipo: pedido.desconto_tipo ?? 'valor',
         itens: itens.map((i) => ({
           produto_id: i.produto_id ?? '',
           descricao: i.descricao,
