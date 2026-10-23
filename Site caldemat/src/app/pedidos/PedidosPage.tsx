@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Cliente, Pedido, Produto } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
 import { formatNumero } from '../../lib/numero'
@@ -7,9 +7,9 @@ import { calcularTotais } from '../../lib/desconto'
 import { dentroDoPeriodo, type Periodo } from '../../lib/periodo'
 import { listarClientes } from '../clientes/clientes.api'
 import { listarProdutos } from '../produtos/produtos.api'
-import { listarPedidos, criarPedido, listarUsuariosNomes, type PedidoInput } from './pedidos.api'
+import { listarPedidos, criarPedido, aprovarPedido, reprovarPedido, listarUsuariosNomes, type PedidoInput } from './pedidos.api'
 import { STATUS, statusDe } from './status'
-import PedidoForm from './PedidoForm'
+import PedidoForm, { type AcaoPedido } from './PedidoForm'
 import FiltroPeriodo from '../comum/FiltroPeriodo'
 import RelatorioCabecalho from '../comum/RelatorioCabecalho'
 
@@ -23,6 +23,7 @@ const dataBR = (iso: string) => {
 }
 
 export default function PedidosPage() {
+  const navigate = useNavigate()
   const [pedidos, setPedidos] = useState<Linha[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [produtos, setProdutos] = useState<Produto[]>([])
@@ -59,8 +60,15 @@ export default function PedidosPage() {
     carregar()
   }, [carregar])
 
-  async function criar(input: PedidoInput) {
-    await criarPedido(input)
+  // Salva o orçamento e, se pedido, já aprova/reprova ou abre a impressão.
+  async function criar(input: PedidoInput, acao?: AcaoPedido) {
+    const { id } = await criarPedido(input)
+    if (acao === 'aprovar') await aprovarPedido(id)
+    if (acao === 'reprovar') await reprovarPedido(id)
+    if (acao === 'imprimir') {
+      navigate(`/app/pedidos/${id}?imprimir=1`)
+      return
+    }
     await carregar()
   }
 
@@ -112,6 +120,7 @@ export default function PedidosPage() {
           dataTexto={new Date().toLocaleDateString('pt-BR')}
           textoBotao="Salvar orçamento"
           limparAoSalvar
+          acoes={['aprovar', 'reprovar', 'imprimir']}
           onSubmit={criar}
         />
       </div>

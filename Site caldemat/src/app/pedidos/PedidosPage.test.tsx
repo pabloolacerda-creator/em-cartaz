@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
-const api = vi.hoisted(() => ({ listarPedidos: vi.fn(), criarPedido: vi.fn(), listarUsuariosNomes: vi.fn() }))
+const api = vi.hoisted(() => ({ listarPedidos: vi.fn(), criarPedido: vi.fn(), listarUsuariosNomes: vi.fn(), aprovarPedido: vi.fn(), reprovarPedido: vi.fn() }))
 const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
 const prod = vi.hoisted(() => ({ listarProdutos: vi.fn() }))
 vi.mock('./pedidos.api', () => api)
@@ -136,6 +136,36 @@ describe('PedidosPage', () => {
     renderPage()
     expect(await screen.findByRole('alert')).toHaveTextContent(/boom/)
     expect(screen.queryByText(/nenhum pedido/i)).not.toBeInTheDocument()
+  })
+
+  it('Aprovar ao lado de salvar: salva o orçamento e já aprova', async () => {
+    api.criarPedido.mockResolvedValue({ id: 'p9' })
+    api.aprovarPedido.mockResolvedValue(undefined)
+    await pronto()
+    fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
+    setItem(0, 'Tanque', '1', '100,00')
+    fireEvent.click(screen.getByRole('button', { name: /^aprovar$/i }))
+    await waitFor(() => expect(api.criarPedido).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(api.aprovarPedido).toHaveBeenCalledWith('p9'))
+    expect(api.reprovarPedido).not.toHaveBeenCalled()
+  })
+
+  it('Reprovar ao lado de salvar: salva o orçamento e reprova', async () => {
+    api.criarPedido.mockResolvedValue({ id: 'p9' })
+    api.reprovarPedido.mockResolvedValue(undefined)
+    await pronto()
+    fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
+    setItem(0, 'Tanque', '1', '100,00')
+    fireEvent.click(screen.getByRole('button', { name: /^reprovar$/i }))
+    await waitFor(() => expect(api.reprovarPedido).toHaveBeenCalledWith('p9'))
+  })
+
+  it('Aprovar com formulário inválido não salva nem aprova', async () => {
+    await pronto()
+    fireEvent.click(screen.getByRole('button', { name: /^aprovar$/i }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(/cliente/i)
+    expect(api.criarPedido).not.toHaveBeenCalled()
+    expect(api.aprovarPedido).not.toHaveBeenCalled()
   })
 
   it('erro ao salvar é exibido e botão volta a habilitar', async () => {

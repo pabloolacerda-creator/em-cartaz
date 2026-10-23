@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { Cliente, Produto } from '../../types'
 import { listarClientes } from '../clientes/clientes.api'
 import { listarProdutos } from '../produtos/produtos.api'
-import { obterPedido, editarPedido, type PedidoInput } from './pedidos.api'
-import PedidoForm, { type PedidoFormValor } from './PedidoForm'
+import { obterPedido, editarPedido, aprovarPedido, reprovarPedido, type PedidoInput } from './pedidos.api'
+import PedidoForm, { type PedidoFormValor, type AcaoPedido } from './PedidoForm'
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 const valorBR = (n: number) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
@@ -16,6 +16,7 @@ export default function PedidoEditar() {
   const [produtos, setProdutos] = useState<Produto[]>([])
   const [inicial, setInicial] = useState<PedidoFormValor | null>(null)
   const [dataTexto, setDataTexto] = useState('')
+  const [status, setStatus] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
@@ -30,6 +31,7 @@ export default function PedidoEditar() {
         setProdutos([])
       }
       setDataTexto(new Date(pedido.data).toLocaleDateString('pt-BR'))
+      setStatus(pedido.status)
       const medida = (n?: number | null) => (n === null || n === undefined ? '' : String(n))
       setInicial({
         cliente_id: pedido.cliente_id,
@@ -60,9 +62,12 @@ export default function PedidoEditar() {
     carregar()
   }, [carregar])
 
-  async function salvar(input: PedidoInput) {
+  // Salva as alterações e, se pedido, já aprova/reprova ou abre a impressão.
+  async function salvar(input: PedidoInput, acao?: AcaoPedido) {
     await editarPedido(id, input)
-    navigate(`/app/pedidos/${id}`)
+    if (acao === 'aprovar') await aprovarPedido(id)
+    if (acao === 'reprovar') await reprovarPedido(id)
+    navigate(`/app/pedidos/${id}${acao === 'imprimir' ? '?imprimir=1' : ''}`)
   }
 
   if (loading) return <p>Carregando...</p>
@@ -86,6 +91,8 @@ export default function PedidoEditar() {
         inicial={inicial}
         dataTexto={dataTexto}
         textoBotao="Salvar alterações"
+        // Aprovar/Reprovar só fazem sentido enquanto ainda é orçamento (emitido).
+        acoes={!status || status === 'emitido' ? ['aprovar', 'reprovar', 'imprimir'] : ['imprimir']}
         onSubmit={salvar}
       />
     </div>

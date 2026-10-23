@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import type { Pedido, PedidoItem } from '../../types'
 import { formatMoedaBR } from '../../lib/money'
 import { formatNumero } from '../../lib/numero'
@@ -40,6 +40,7 @@ function Dado({ rotulo, valor }: { rotulo: string; valor?: string | null }) {
 
 export default function PedidoDetalhe() {
   const { id = '' } = useParams()
+  const [params, setParams] = useSearchParams()
   const [pedido, setPedido] = useState<Pedido | null>(null)
   const [itens, setItens] = useState<PedidoItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +65,13 @@ export default function PedidoDetalhe() {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  // Vindo de "Imprimir" no formulário (?imprimir=1): abre a impressão assim que carregar, uma vez.
+  useEffect(() => {
+    if (loading || !pedido || params.get('imprimir') !== '1') return
+    setParams({}, { replace: true })
+    setTimeout(() => window.print(), 300)
+  }, [loading, pedido, params, setParams])
 
   async function executar(fn: (id: string) => Promise<void>) {
     if (acaoEmCurso) return

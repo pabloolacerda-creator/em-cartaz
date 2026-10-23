@@ -63,10 +63,20 @@ type Props = {
   dataTexto: string
   textoBotao: string
   limparAoSalvar?: boolean
-  onSubmit: (input: PedidoInput) => Promise<void>
+  onSubmit: (input: PedidoInput, acao?: AcaoPedido) => Promise<void>
+  // Botões extras ao lado de salvar (cada um salva e executa a ação).
+  acoes?: AcaoPedido[]
 }
 
-export default function PedidoForm({ clientes, produtos, inicial, dataTexto, textoBotao, limparAoSalvar, onSubmit }: Props) {
+// Ações que podem ser disparadas junto com o salvar.
+export type AcaoPedido = 'aprovar' | 'reprovar' | 'imprimir'
+const ROTULO_ACAO: Record<AcaoPedido, { rotulo: string; cls: string }> = {
+  aprovar: { rotulo: 'Aprovar', cls: 'bg-green-700 text-white' },
+  reprovar: { rotulo: 'Reprovar', cls: 'bg-red-700 text-white' },
+  imprimir: { rotulo: 'Imprimir', cls: 'border' },
+}
+
+export default function PedidoForm({ clientes, produtos, inicial, dataTexto, textoBotao, limparAoSalvar, onSubmit, acoes = [] }: Props) {
   const base = inicial ?? VALOR_VAZIO
   const [clienteId, setClienteId] = useState(base.cliente_id)
   const [obs, setObs] = useState(base.obs)
@@ -126,8 +136,12 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
   const setItem = (idx: number, k: keyof ItemForm, v: string) =>
     setItens((p) => p.map((it, i) => (i === idx ? { ...it, [k]: v } : it)))
 
-  async function salvar(e: FormEvent) {
+  function salvar(e: FormEvent) {
     e.preventDefault()
+    void enviar()
+  }
+
+  async function enviar(acao?: AcaoPedido) {
     if (salvando) return
     if (!clienteId) return setErro('Selecione o cliente.')
     const out: ItemInput[] = []
@@ -189,7 +203,7 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
     setErro(null)
     setSalvando(true)
     try {
-      await onSubmit({
+      const dados: PedidoInput = {
         cliente_id: clienteId,
         obs: obs.trim() || null,
         prazo_entrega: prazo.trim() || null,
@@ -197,7 +211,8 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
         desconto: descontoNum,
         desconto_tipo: descontoTipo,
         itens: out,
-      })
+      }
+      await (acao ? onSubmit(dados, acao) : onSubmit(dados))
       if (limparAoSalvar) {
         setClienteId('')
         setObs('')
@@ -453,9 +468,23 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
         </div>
       </section>
 
-      <button type="submit" disabled={salvando} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">
-        {textoBotao}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" disabled={salvando} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">
+          {textoBotao}
+        </button>
+        {acoes.map((a) => (
+          <button
+            key={a}
+            type="button"
+            disabled={salvando}
+            title="Salva e já executa a ação"
+            onClick={() => void enviar(a)}
+            className={`rounded px-4 py-2 disabled:opacity-50 ${ROTULO_ACAO[a].cls}`}
+          >
+            {ROTULO_ACAO[a].rotulo}
+          </button>
+        ))}
+      </div>
     </form>
   )
 }

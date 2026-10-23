@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 
-const api = vi.hoisted(() => ({ obterPedido: vi.fn(), editarPedido: vi.fn() }))
+const api = vi.hoisted(() => ({ obterPedido: vi.fn(), editarPedido: vi.fn(), aprovarPedido: vi.fn(), reprovarPedido: vi.fn() }))
 const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
 const prod = vi.hoisted(() => ({ listarProdutos: vi.fn() }))
 vi.mock('./pedidos.api', () => api)
@@ -63,5 +63,24 @@ describe('PedidoEditar', () => {
     })
     // volta para a tela de detalhe
     expect(await screen.findByText('DETALHE')).toBeInTheDocument()
+  })
+  it('orçamento emitido: "Aprovar" salva as alterações e aprova', async () => {
+    api.aprovarPedido.mockResolvedValue(undefined)
+    abrir()
+    await screen.findAllByLabelText(/descrição/i)
+    fireEvent.click(screen.getByRole('button', { name: /^aprovar$/i }))
+    await waitFor(() => expect(api.editarPedido).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(api.aprovarPedido).toHaveBeenCalledWith('p1'))
+    expect(await screen.findByText('DETALHE')).toBeInTheDocument()
+  })
+
+  it('pedido já aprovado: não oferece Aprovar/Reprovar, só Imprimir', async () => {
+    const atual = await api.obterPedido()
+    api.obterPedido.mockResolvedValue({ ...atual, pedido: { ...atual.pedido, status: 'aprovado' } })
+    abrir()
+    await screen.findAllByLabelText(/descrição/i)
+    expect(screen.queryByRole('button', { name: /^aprovar$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^reprovar$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /^imprimir$/i })).toBeInTheDocument()
   })
 })

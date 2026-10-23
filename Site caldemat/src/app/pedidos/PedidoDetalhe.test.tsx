@@ -83,6 +83,21 @@ describe('PedidoDetalhe', () => {
     expect(screen.getByRole('button', { name: 'Imprimir' })).toBeInTheDocument()
   })
 
+  it('chegando com ?imprimir=1 abre a impressão sozinho', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+    api.obterPedido.mockResolvedValue(pedido('emitido'))
+    render(
+      <MemoryRouter initialEntries={['/app/pedidos/p1?imprimir=1']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Routes>
+          <Route path="/app/pedidos/:id" element={<PedidoDetalhe />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await screen.findByText('Emitido')
+    await waitFor(() => expect(print).toHaveBeenCalledTimes(1), { timeout: 2000 })
+    print.mockRestore()
+  })
+
   it('botão Ordem de Serviço só aparece depois de aprovado', async () => {
     api.obterPedido.mockResolvedValue(pedido('emitido'))
     const { unmount } = abrir()
