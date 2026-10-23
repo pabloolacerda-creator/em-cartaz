@@ -1,7 +1,29 @@
-// Tabela de chapas grossas (espessura → peso aproximado em kg/m²), fornecida pela Caldemat.
-export type Chapa = { pol: string; mm: number; kgm2: number }
+// Tabelas de chapas fornecidas pela Caldemat (espessura → peso aproximado em kg/m²).
+// `pol` é o identificador/rótulo da chapa: polegada nas grossas, bitola MSG nas finas.
+export type GrupoChapa = 'finas' | 'grossas'
+export const GRUPOS_CHAPA: { grupo: GrupoChapa; titulo: string }[] = [
+  { grupo: 'finas', titulo: 'Chapas finas a quente' },
+  { grupo: 'grossas', titulo: 'Chapas grossas' },
+]
+export type Chapa = { grupo: GrupoChapa; pol: string; mm: number; kgm2: number }
 
-export const CHAPAS: Chapa[] = [
+const finas: Chapa[] = [
+  { pol: 'MSG 18', mm: 1.2, kgm2: 9.6 },
+  { pol: 'MSG 16', mm: 1.5, kgm2: 12 },
+  { pol: 'MSG 15', mm: 1.8, kgm2: 14.4 },
+  { pol: 'MSG 14', mm: 2, kgm2: 16 },
+  { pol: 'MSG 13', mm: 2.25, kgm2: 18 },
+  { pol: 'MSG 12', mm: 2.65, kgm2: 21.2 },
+  { pol: 'MSG 11', mm: 3, kgm2: 24 },
+  { pol: 'MSG 10', mm: 3.35, kgm2: 26.8 },
+  { pol: 'MSG 9', mm: 3.75, kgm2: 30 },
+  { pol: 'MSG 8', mm: 4.25, kgm2: 34 },
+  { pol: 'MSG 7', mm: 4.5, kgm2: 36 },
+  { pol: '3/16"', mm: 4.75, kgm2: 38 },
+  { pol: '5,00 mm', mm: 5, kgm2: 40 },
+].map((c) => ({ ...c, grupo: 'finas' as const }))
+
+const grossas: Chapa[] = [
   { pol: '1/4"', mm: 6.3, kgm2: 49.39 },
   { pol: '5/16"', mm: 8, kgm2: 62.72 },
   { pol: '3/8"', mm: 9.5, kgm2: 74.48 },
@@ -18,7 +40,10 @@ export const CHAPAS: Chapa[] = [
   { pol: '3"', mm: 75, kgm2: 588.1 },
   { pol: '3.1/2"', mm: 88.9, kgm2: 697.8 },
   { pol: '4"', mm: 100, kgm2: 784 },
-]
+].map((c) => ({ ...c, grupo: 'grossas' as const }))
+
+// Da mais fina para a mais grossa.
+export const CHAPAS: Chapa[] = [...finas, ...grossas]
 
 export type EntradaChapa = { kgm2: number; largura: number; comprimento: number; quantidade: number; precoKg: number }
 export type ResultadoChapa = { areaUnit: number; areaTotal: number; pesoUnit: number; pesoTotal: number; custoTotal: number }

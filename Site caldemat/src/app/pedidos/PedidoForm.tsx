@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import type { Cliente, Produto } from '../../types'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
 import { calcularTotais, type TipoDesconto } from '../../lib/desconto'
-import { CHAPAS, calcularChapa } from '../../lib/chapa'
+import { CHAPAS, GRUPOS_CHAPA, calcularChapa } from '../../lib/chapa'
 import { modoMedida, calcularValorItem } from './calculo'
 import type { ItemInput, PedidoInput } from './pedidos.api'
 
@@ -304,8 +304,14 @@ export default function PedidoForm({ clientes, produtos, inicial, dataTexto, tex
                   <div>
                     <label htmlFor={`ped-esp-${i}`} className="block text-sm">Espessura</label>
                     <select id={`ped-esp-${i}`} className={campo} value={it.chapa_pol ?? CHAPAS[0].pol} onChange={(e) => setItem(i, 'chapa_pol', e.target.value)}>
-                      {CHAPAS.map((c) => (
-                        <option key={c.pol} value={c.pol}>{c.pol} — {c.kgm2.toLocaleString('pt-BR')} kg/m²</option>
+                      {GRUPOS_CHAPA.map((g) => (
+                        <optgroup key={g.grupo} label={g.titulo}>
+                          {CHAPAS.filter((c) => c.grupo === g.grupo).map((c) => (
+                            <option key={c.pol} value={c.pol}>
+                              {c.pol} ({c.mm.toLocaleString('pt-BR')} mm) — {c.kgm2.toLocaleString('pt-BR')} kg/m²
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                   </div>

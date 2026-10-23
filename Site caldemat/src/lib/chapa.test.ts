@@ -1,12 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import { CHAPAS, calcularChapa } from './chapa'
 
-describe('tabela de chapas grossas', () => {
-  it('tem as 16 espessuras da tabela com kg/m²', () => {
-    expect(CHAPAS).toHaveLength(16)
-    expect(CHAPAS[0]).toEqual({ pol: '1/4"', mm: 6.3, kgm2: 49.39 })
-    expect(CHAPAS.find((c) => c.pol === '1/2"')).toEqual({ pol: '1/2"', mm: 12.5, kgm2: 98 })
-    expect(CHAPAS[15]).toEqual({ pol: '4"', mm: 100, kgm2: 784 })
+describe('tabelas de chapas', () => {
+  it('tem as 13 finas a quente + 16 grossas, da mais fina para a mais grossa', () => {
+    expect(CHAPAS).toHaveLength(29)
+    expect(CHAPAS[0]).toEqual({ grupo: 'finas', pol: 'MSG 18', mm: 1.2, kgm2: 9.6 })
+    expect(CHAPAS.find((c) => c.pol === 'MSG 10')).toMatchObject({ mm: 3.35, kgm2: 26.8 })
+    expect(CHAPAS.find((c) => c.pol === '1/2"')).toEqual({ grupo: 'grossas', pol: '1/2"', mm: 12.5, kgm2: 98 })
+    expect(CHAPAS[28]).toEqual({ grupo: 'grossas', pol: '4"', mm: 100, kgm2: 784 })
+    for (let k = 1; k < CHAPAS.length; k++) expect(CHAPAS[k].mm).toBeGreaterThan(CHAPAS[k - 1].mm)
+  })
+  it('identificadores únicos (usados no seletor)', () => {
+    expect(new Set(CHAPAS.map((c) => c.pol)).size).toBe(CHAPAS.length)
+  })
+  it('chapas finas seguem 8 kg/m² por mm', () => {
+    for (const c of CHAPAS.filter((x) => x.grupo === 'finas')) expect(c.kgm2).toBeCloseTo(c.mm * 8, 2)
   })
 })
 

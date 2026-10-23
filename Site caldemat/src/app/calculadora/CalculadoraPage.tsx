@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CHAPAS, calcularChapa } from '../../lib/chapa'
+import { CHAPAS, GRUPOS_CHAPA, calcularChapa } from '../../lib/chapa'
 import { parseMoedaBR, formatMoedaBR } from '../../lib/money'
 
 export const numBR = (s: string) => {
@@ -38,15 +38,19 @@ export default function CalculadoraPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Calculadora de chapa</h1>
-        <p className="text-sm text-gray-600">Chapas grossas — peso aproximado pela tabela (kg/m²). Medidas em metros.</p>
+        <p className="text-sm text-gray-600">Chapas finas a quente e chapas grossas — peso aproximado pela tabela (kg/m²). Medidas em metros.</p>
       </div>
 
       <div className="grid gap-3 rounded-lg border bg-white p-4 sm:grid-cols-5 sm:items-end">
         <div>
           <label htmlFor="calc-esp" className="block text-sm">Espessura</label>
           <select id="calc-esp" className={campo} value={pol} onChange={(e) => setPol(e.target.value)}>
-            {CHAPAS.map((c) => (
-              <option key={c.pol} value={c.pol}>{c.pol} — {fmt(c.mm)} mm</option>
+            {GRUPOS_CHAPA.map((g) => (
+              <optgroup key={g.grupo} label={g.titulo}>
+                {CHAPAS.filter((c) => c.grupo === g.grupo).map((c) => (
+                  <option key={c.pol} value={c.pol}>{c.pol} — {fmt(c.mm)} mm</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
