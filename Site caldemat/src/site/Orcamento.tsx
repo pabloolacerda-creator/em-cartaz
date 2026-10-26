@@ -35,8 +35,9 @@ export default function Orcamento() {
       setErro('Preencha nome, WhatsApp e cidade.')
       return
     }
-    const n = parseFloat(f.capacidade.replace(',', '.'))
-    const capacidade_litros = Number.isFinite(n) ? n : null
+    // Litros são inteiros; tira tudo que não é dígito (aceita "5.000", "5000 L" etc.).
+    const digitos = f.capacidade.replace(/\D/g, '')
+    const capacidade_litros = digitos === '' ? null : parseInt(digitos, 10)
     setErro(null)
     setEnviando(true)
     try {

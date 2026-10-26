@@ -56,6 +56,16 @@ describe('Orcamento (LP)', () => {
     expect(api.criarLead).not.toHaveBeenCalled()
   })
 
+  it('capacidade com separador de milhar "5.000" vira 5000', async () => {
+    render(<Orcamento />)
+    preencherBasico()
+    fireEvent.change(screen.getByLabelText(/capacidade/i), { target: { value: '5.000' } })
+    fireEvent.click(screen.getByRole('button', { name: /quero meu orçamento/i }))
+
+    await waitFor(() => expect(api.criarLead).toHaveBeenCalledTimes(1))
+    expect(api.criarLead).toHaveBeenCalledWith(expect.objectContaining({ capacidade_litros: 5000 }))
+  })
+
   it('capacidade não-numérica vira null (não quebra)', async () => {
     render(<Orcamento />)
     preencherBasico()
