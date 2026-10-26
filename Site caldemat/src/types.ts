@@ -100,6 +100,24 @@ export type Cliente = {
   ativo: boolean
 }
 
+export type StatusLead = 'novo' | 'contatado' | 'ganho' | 'perdido'
+
+export type Lead = {
+  id: string
+  criado_em: string
+  nome: string
+  whatsapp: string
+  documento: string | null
+  capacidade_litros: number | null
+  bacia_contencao: boolean | null
+  cidade: string | null
+  status: StatusLead
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  obs: string | null
+}
+
 export type StatusPedido = 'emitido' | 'aprovado' | 'reprovado' | 'faturado'
 
 export type Pedido = {
