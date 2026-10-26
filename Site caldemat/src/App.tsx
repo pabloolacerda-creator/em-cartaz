@@ -1,5 +1,6 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import SitePublico from './site/SitePublico'
+import Orcamento from './site/Orcamento'
 import Login from './app/Login'
 import RequireAuth from './app/RequireAuth'
 import Dashboard from './app/Dashboard'
@@ -26,6 +27,7 @@ const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel C
 export const router = createBrowserRouter(
   [
     { path: '/', element: <SitePublico /> },
+    { path: '/orcamento', element: <Orcamento /> },
     { path: '/app/login', element: <Login /> },
     {
       path: '/app',

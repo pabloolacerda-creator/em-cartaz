@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { NAV, WHATSAPP_URL } from './dados'
+import { NAV } from './dados'
 
 export default function Header() {
   return (
@@ -16,14 +16,12 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            to="/orcamento"
             className="hidden rounded-md border border-brand px-4 py-2 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white sm:inline-block"
           >
             Orçamento
-          </a>
+          </Link>
           <Link
             to="/app/login"
             className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
