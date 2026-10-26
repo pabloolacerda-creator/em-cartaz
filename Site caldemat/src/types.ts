@@ -8,6 +8,7 @@ export type Perfil = {
   pode_pedidos: boolean
   pode_produtos: boolean
   pode_financeiro: boolean
+  pode_leads: boolean
   ativo: boolean
   // Dados cadastrais (opcionais)
   cpf?: string | null
@@ -17,7 +18,7 @@ export type Perfil = {
   email?: string | null
 }
 
-export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'financeiro' | 'funcionarios'
+export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'financeiro' | 'leads' | 'funcionarios'
 
 export type ContaFinanceira = {
   id: string

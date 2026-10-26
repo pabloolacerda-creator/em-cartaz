@@ -37,7 +37,7 @@ describe('FuncionariosPage', () => {
     api.listarFuncionarios.mockResolvedValue([admin, joao])
     render(<FuncionariosPage />)
     await screen.findByText('Joao')
-    for (const n of [/matéria-prima/i, /estoque/i, /clientes/i, /pedidos/i, /produtos\/serviços/i, /financeiro/i, /administrador/i]) {
+    for (const n of [/matéria-prima/i, /estoque/i, /clientes/i, /pedidos/i, /produtos\/serviços/i, /financeiro/i, /leads/i, /administrador/i]) {
       expect(screen.getByRole('checkbox', { name: n })).toBeInTheDocument()
     }
   })
@@ -55,7 +55,7 @@ describe('FuncionariosPage', () => {
     await waitFor(() => expect(api.criarFuncionario).toHaveBeenCalledTimes(1))
     expect(api.criarFuncionario).toHaveBeenCalledWith({
       usuario: 'Maria', senha: 'segredo1', nome: 'Maria S', is_admin: false,
-      permissoes: { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: true, pode_produtos: false, pode_financeiro: false },
+      permissoes: { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: true, pode_produtos: false, pode_financeiro: false, pode_leads: false },
     })
   })
 
