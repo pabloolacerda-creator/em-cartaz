@@ -22,14 +22,14 @@ export function initGads(): void {
   s.src = `https://www.googletagmanager.com/gtag/js?id=${GADS_ID}`
   document.head.appendChild(s)
   window.dataLayer = window.dataLayer || []
-  function gtag() {
+  const gtag: (...args: unknown[]) => void = function () {
     // gtag.js espera o objeto `arguments`, não um array.
     // eslint-disable-next-line prefer-rest-params
     window.dataLayer!.push(arguments)
   }
-  window.gtag = gtag as Window['gtag']
-  window.gtag('js', new Date())
-  window.gtag('config', GADS_ID)
+  window.gtag = gtag
+  gtag('js', new Date())
+  gtag('config', GADS_ID)
 }
 
 export function dispararConversaoLead(): void {

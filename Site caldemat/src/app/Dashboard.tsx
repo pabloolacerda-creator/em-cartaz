@@ -15,6 +15,7 @@ const CADASTRO_SUBS: Item[] = [
 ]
 
 const OPERACAO: Item[] = [
+  { modulo: 'leads', rotulo: 'Leads', to: '/app/leads' },
   { modulo: 'estoque', rotulo: 'Estoque', to: '/app/estoque' },
   { modulo: 'pedidos', rotulo: 'Pedidos', to: '/app/pedidos' },
   { modulo: 'pedidos', rotulo: 'Calculadora', to: '/app/calculadora' },
