@@ -20,12 +20,15 @@ export default function EntryEditModal({
 }) {
   const isIn = entry.kind === 'in';
   const inSeries = Boolean(entry.sourceFixedId);
+  const wasPartial = entry.paidCents > 0 && entry.paidCents < entry.amountCents;
   const [name, setName] = useState(entry.name);
   const [description, setDescription] = useState(entry.description);
   const [category, setCategory] = useState(entry.category);
   const [valor, setValor] = useState(formatBRL(entry.amountCents));
   const [purchaseDate, setPurchaseDate] = useState(entry.purchaseDate);
   const [dueDate, setDueDate] = useState(entry.dueDate);
+  const [paid, setPaid] = useState(entry.paidCents > 0);
+  const [payDate, setPayDate] = useState(entry.paidDate || entry.dueDate);
   const [repeat, setRepeat] = useState<Repeat>('none');
   const [times, setTimes] = useState('');
   const [busy, setBusy] = useState(false);
@@ -40,7 +43,8 @@ export default function EntryEditModal({
   const timesOk =
     repeat === 'none' ||
     (Number.isInteger(count) && count >= minTimes && count <= MAX_TIMES);
-  const canSave = cents !== null && name.trim() !== '' && dueDate !== '' && timesOk && !busy;
+  const canSave =
+    cents !== null && name.trim() !== '' && dueDate !== '' && timesOk && (!paid || payDate !== '') && !busy;
 
   function occurrence(d: string, seriesId: string): NewEntry {
     return {
@@ -62,6 +66,10 @@ export default function EntryEditModal({
     if (cents === null) return;
     setBusy(true);
     setError(null);
+    // Pagamento parcial é preservado (só ajusta a data); senão, marcar = pago
+    // total e desmarcar = em aberto.
+    const paidCentsNow = paid ? (wasPartial ? Math.min(entry.paidCents, cents) : cents) : 0;
+    const paidDateNow = paid ? payDate || dueDate : null;
     const edited = {
       name: name.trim(),
       description: description.trim(),
@@ -69,6 +77,8 @@ export default function EntryEditModal({
       amountCents: cents,
       dueDate,
       purchaseDate: isIn ? dueDate : purchaseDate,
+      paidCents: paidCentsNow,
+      paidDate: paidDateNow,
     };
     try {
       if (repeat === 'none') {
@@ -153,6 +163,36 @@ export default function EntryEditModal({
               <label htmlFor="ed-due" className="mb-1 block text-sm text-muted">Vencimento</label>
               <input id="ed-due" type="date" className={inputCls} value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
+          </div>
+        )}
+
+        {/* Pagamento: marcar e dizer quando pagou/recebeu */}
+        <label className="flex items-center gap-2 text-sm text-txt">
+          <input
+            type="checkbox"
+            checked={paid}
+            onChange={(e) => setPaid(e.target.checked)}
+            className="h-4 w-4 accent-green"
+          />
+          {isIn ? 'Já recebi' : 'Já paguei'}
+        </label>
+        {paid && (
+          <div>
+            <label htmlFor="ed-paydate" className="mb-1 block text-sm text-muted">
+              {isIn ? 'Quando recebi' : 'Quando paguei'}
+            </label>
+            <input
+              id="ed-paydate"
+              type="date"
+              className={inputCls}
+              value={payDate}
+              onChange={(e) => setPayDate(e.target.value)}
+            />
+            {wasPartial && (
+              <p className="mt-1 text-xs text-muted">
+                Pagamento parcial: isto ajusta só a data; o valor {isIn ? 'recebido' : 'pago'} continua {formatBRL(entry.paidCents)}.
+              </p>
+            )}
           </div>
         )}
 
