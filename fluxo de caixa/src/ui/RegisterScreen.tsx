@@ -15,8 +15,13 @@ export default function RegisterScreen({ tab, reload, entries }: Props) {
   const items = entries.filter((e) => e.kind === tab);
 
   return (
-    <div className="space-y-4">
-      <EntryForm key={tab} kind={tab} onSaved={onSaved} />
+    // No celular: empilhado (form em cima, lista embaixo).
+    // No PC largo (lg): duas colunas lado a lado; o form fica fixo no topo
+    // enquanto a lista rola.
+    <div className="grid gap-4 lg:grid-cols-2 lg:items-start lg:gap-6">
+      <div className="lg:sticky lg:top-6">
+        <EntryForm key={tab} kind={tab} onSaved={onSaved} />
+      </div>
       <PeriodList
         entries={items}
         month={month}

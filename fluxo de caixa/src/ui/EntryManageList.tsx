@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Entry } from '../core/types';
 import { formatBRL } from '../core/money';
-import { categoryColor } from '../core/categories';
+import { CATEGORIES, categoryColor } from '../core/categories';
 import { deleteEntry } from '../data/entries';
 import ConfirmDialog from './ConfirmDialog';
 import PayModal from './PayModal';
@@ -42,6 +42,19 @@ export default function EntryManageList({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Agrupa por categoria (na ordem de CATEGORIES; sem categoria por ultimo) e,
+  // dentro de cada grupo, ordena por data de vencimento.
+  const ordered = useMemo(() => {
+    const rank = (c: string) => {
+      const i = (CATEGORIES as readonly string[]).indexOf(c);
+      return i === -1 ? CATEGORIES.length : i;
+    };
+    return [...entries].sort((a, b) => {
+      const d = rank(a.category || '') - rank(b.category || '');
+      return d !== 0 ? d : a.dueDate.localeCompare(b.dueDate);
+    });
+  }, [entries]);
+
   async function remove(e: Entry) {
     setBusy(true);
     setError(null);
@@ -63,11 +76,46 @@ export default function EntryManageList({
         {entries.length === 0 ? (
           <li className="px-4 py-6 text-center text-sm text-muted">{emptyText}</li>
         ) : (
-          entries.map(e => {
+          ordered.flatMap((e, idx) => {
             const isIn = e.kind === 'in';
             const partial = e.paidCents > 0 && e.paidCents < e.amountCents;
-            return (
-              <li key={e.id} className="flex items-center gap-3 px-4 py-3">
+            // Tarja inteira tingida na cor da categoria (fundo translucido) +
+            // barra solida na lateral esquerda. Sem categoria fica neutro.
+            const catColor = e.category ? categoryColor(e.category) : null;
+            // Cabecalho do grupo: so aparece quando a categoria muda em relacao
+            // ao item anterior (a lista ja vem ordenada por categoria).
+            const cat = e.category || '';
+            const prevCat = idx === 0 ? null : (ordered[idx - 1].category || '');
+            const header =
+              cat !== prevCat ? (
+                <li
+                  key={`h-${idx}`}
+                  className="flex items-center gap-2 px-4 pt-3 pb-1 text-[11px] font-medium uppercase tracking-wide text-muted"
+                >
+                  {cat ? (
+                    <>
+                      <span
+                        className="inline-block h-2 w-2 rounded-full"
+                        style={{ background: categoryColor(cat) }}
+                      />
+                      {cat}
+                    </>
+                  ) : (
+                    'Sem categoria'
+                  )}
+                </li>
+              ) : null;
+            return [
+              header,
+              <li
+                key={e.id}
+                className="flex items-center gap-3 px-4 py-3"
+                style={
+                  catColor
+                    ? { backgroundColor: `${catColor}2b`, boxShadow: `inset 4px 0 0 0 ${catColor}` }
+                    : undefined
+                }
+              >
                 <div
                   role="button"
                   tabIndex={0}
@@ -128,8 +176,8 @@ export default function EntryManageList({
                 >
                   <TrashIcon />
                 </button>
-              </li>
-            );
+              </li>,
+            ];
           })
         )}
       </ul>

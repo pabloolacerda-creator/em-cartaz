@@ -1,34 +1,57 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { getSession, onAuthChange } from '../data/auth';
 import LoginScreen from './LoginScreen';
+import ResetPasswordScreen from './ResetPasswordScreen';
+
+type Phase = 'loading' | 'signedOut' | 'signedIn' | 'recovery';
 
 export default function AuthGate({ children }: { children: ReactNode }) {
-  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [phase, setPhase] = useState<Phase>('loading');
 
   useEffect(() => {
     let active = true;
+    // Link de recuperacao chega como #access_token=...&type=recovery na URL.
+    const isRecoveryUrl = window.location.hash.includes('type=recovery');
+
     getSession()
       .then((s) => {
-        if (active) setSignedIn((prev) => prev ?? s !== null);
+        if (!active) return;
+        setPhase((prev) => {
+          if (prev === 'recovery' || isRecoveryUrl) return 'recovery';
+          return s !== null ? 'signedIn' : 'signedOut';
+        });
       })
       .catch(() => {
-        if (active) setSignedIn((prev) => prev ?? false);
+        if (!active) return;
+        setPhase((prev) => (prev === 'recovery' || isRecoveryUrl ? 'recovery' : 'signedOut'));
       });
-    const unsubscribe = onAuthChange((v) => {
-      if (active) setSignedIn(v);
+
+    const unsubscribe = onAuthChange((state) => {
+      if (!active) return;
+      setPhase((prev) => {
+        if (state === 'recovery') return 'recovery';
+        if (state === 'signedOut') return 'signedOut';
+        // state === 'signedIn': nao sai do modo recuperacao so porque existe
+        // sessao; so sai quando a nova senha e salva (onDone) ou ao cancelar.
+        return prev === 'recovery' ? 'recovery' : 'signedIn';
+      });
     });
+
     return () => {
       active = false;
       unsubscribe();
     };
   }, []);
 
-  if (signedIn === null) {
+  if (phase === 'loading') {
     return (
       <div className="min-h-screen bg-bg text-muted flex items-center justify-center">
         Carregando...
       </div>
     );
   }
-  return signedIn ? <>{children}</> : <LoginScreen />;
+  if (phase === 'recovery') {
+    return <ResetPasswordScreen onDone={() => setPhase('signedIn')} />;
+  }
+  return phase === 'signedIn' ? <>{children}</> : <LoginScreen />;
 }

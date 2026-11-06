@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
-import { signIn, signUp } from '../data/auth';
+import { signIn, signUp, resetPassword } from '../data/auth';
+
+type Mode = 'in' | 'up' | 'forgot';
 
 function friendlyError(err: unknown): string {
   const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
@@ -14,12 +16,18 @@ function friendlyError(err: unknown): string {
 }
 
 export default function LoginScreen() {
-  const [mode, setMode] = useState<'in' | 'up'>('in');
+  const [mode, setMode] = useState<Mode>('in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    setError(null);
+    setInfo(null);
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -27,10 +35,14 @@ export default function LoginScreen() {
     setInfo(null);
     setBusy(true);
     try {
-      if (mode === 'in') await signIn(email.trim(), password);
-      else {
+      if (mode === 'in') {
+        await signIn(email.trim(), password);
+      } else if (mode === 'up') {
         await signUp(email.trim(), password);
         setInfo('Pronto, sua conta foi criada! Se pedir, confirme o e-mail e entre.');
+      } else {
+        await resetPassword(email.trim());
+        setInfo('Se este e-mail tiver conta, enviei um link pra criar uma senha nova. Olhe sua caixa de entrada (e o spam).');
       }
     } catch (err) {
       setError(friendlyError(err));
@@ -42,54 +54,79 @@ export default function LoginScreen() {
   const input =
     'w-full rounded-lg border border-line bg-bg px-3 py-2 text-txt placeholder:text-muted focus:outline-none focus:border-blue';
 
+  const subtitle =
+    mode === 'in'
+      ? 'Que bom te ver. Vamos ao seu caixa?'
+      : mode === 'up'
+        ? 'Vamos criar seu caixa. É rapidinho.'
+        : 'Informe seu e-mail que eu te envio um link pra criar uma senha nova.';
+
+  const submitLabel =
+    mode === 'in' ? 'Entrar agora' : mode === 'up' ? 'Criar minha conta' : 'Enviar link de redefinição';
+
   return (
     <div className="space-bg min-h-screen text-txt flex items-center justify-center p-4">
       <div className="relative w-full max-w-sm">
         <div className="glow-orb" aria-hidden />
         <form onSubmit={onSubmit} className="glass relative z-10 w-full rounded-3xl p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-center tracking-tight">Meu Caixa</h1>
-        <p className="text-sm text-muted text-center">
-          {mode === 'in' ? 'Que bom te ver. Vamos ao seu caixa?' : 'Vamos criar seu caixa. É rapidinho.'}
-        </p>
-        <input
-          type="email"
-          required
-          autoComplete="email"
-          placeholder="E-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={input}
-        />
-        <input
-          type="password"
-          required
-          minLength={6}
-          autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={input}
-        />
-        {error && <p className="text-sm text-red">{error}</p>}
-        {info && <p className="text-sm text-green">{info}</p>}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-lg bg-green py-2 font-semibold text-bg disabled:opacity-60"
-        >
-          {busy ? 'Aguarde...' : mode === 'in' ? 'Entrar agora' : 'Criar minha conta'}
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setMode(mode === 'in' ? 'up' : 'in');
-            setError(null);
-            setInfo(null);
-          }}
-          className="w-full text-sm text-muted hover:text-txt"
-        >
-          {mode === 'in' ? 'É sua primeira vez? Crie sua conta' : 'Já tem conta? Entrar'}
-        </button>
+          <h1 className="text-2xl font-bold text-center tracking-tight">Meu Caixa</h1>
+          <p className="text-sm text-muted text-center">{subtitle}</p>
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            placeholder="E-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={input}
+          />
+          {mode !== 'forgot' && (
+            <input
+              type="password"
+              required
+              minLength={6}
+              autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
+              placeholder="Senha"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={input}
+            />
+          )}
+          {mode === 'in' && (
+            <button
+              type="button"
+              onClick={() => switchMode('forgot')}
+              className="block w-full text-right text-xs text-muted hover:text-txt -mt-1"
+            >
+              Esqueci minha senha
+            </button>
+          )}
+          {error && <p className="text-sm text-red">{error}</p>}
+          {info && <p className="text-sm text-green">{info}</p>}
+          <button
+            type="submit"
+            disabled={busy}
+            className="w-full rounded-lg bg-green py-2 font-semibold text-bg disabled:opacity-60"
+          >
+            {busy ? 'Aguarde...' : submitLabel}
+          </button>
+          {mode === 'forgot' ? (
+            <button
+              type="button"
+              onClick={() => switchMode('in')}
+              className="w-full text-sm text-muted hover:text-txt"
+            >
+              Voltar para entrar
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => switchMode(mode === 'in' ? 'up' : 'in')}
+              className="w-full text-sm text-muted hover:text-txt"
+            >
+              {mode === 'in' ? 'É sua primeira vez? Crie sua conta' : 'Já tem conta? Entrar'}
+            </button>
+          )}
         </form>
       </div>
     </div>

@@ -10,7 +10,7 @@ function ShellInner() {
   const { entries, reload, loading, error } = useData();
   return (
     <div className="space-bg min-h-screen text-txt">
-      <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
+      <div className="mx-auto max-w-3xl lg:max-w-5xl space-y-6 px-4 py-6">
         <TopBar tab={tab} onTab={setTab} />
         {error && (
           <p role="alert" className="rounded-xl border border-red/40 bg-card p-3 text-sm text-red">

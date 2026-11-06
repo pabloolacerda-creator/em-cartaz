@@ -22,9 +22,28 @@ export async function getSession() {
   return data.session;
 }
 
-export function onAuthChange(cb: (signedIn: boolean) => void): () => void {
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-    cb(session !== null);
+// Envia o e-mail de redefinicao. O link volta para a origem atual do app
+// (localhost em dev, ou a URL de onde o PWA foi instalado no celular), entao
+// funciona em qualquer lugar sem URL fixa no codigo.
+export async function resetPassword(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin,
+  });
+  if (error) throw error;
+}
+
+// Define a senha nova do usuario que ja esta autenticado pelo link de recuperacao.
+export async function updatePassword(newPassword: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}
+
+export type AuthState = 'signedIn' | 'signedOut' | 'recovery';
+
+export function onAuthChange(cb: (state: AuthState) => void): () => void {
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') cb('recovery');
+    else cb(session !== null ? 'signedIn' : 'signedOut');
   });
   return () => data.subscription.unsubscribe();
 }
