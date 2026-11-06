@@ -8,6 +8,16 @@ export async function listEntries(): Promise<Entry[]> {
   return (data as EntryRow[]).map(rowToEntry);
 }
 
+export async function listSeriesEntries(sourceFixedId: string): Promise<Entry[]> {
+  const { data, error } = await supabase
+    .from('entries')
+    .select('*')
+    .eq('source_fixed_id', sourceFixedId)
+    .order('due_date');
+  if (error) throw error;
+  return (data as EntryRow[]).map(rowToEntry);
+}
+
 export async function createEntry(input: NewEntry): Promise<Entry> {
   const { data, error } = await supabase.from('entries').insert(entryToRow(input)).select().single();
   if (error) throw error;

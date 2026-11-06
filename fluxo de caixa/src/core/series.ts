@@ -29,3 +29,11 @@ export function seriesDueDates(start: string, freq: Freq, count: number): string
   }
   return dates;
 }
+
+/**
+ * Para ESTENDER uma série existente: retorna `add` novas datas que vêm DEPOIS
+ * de `lastDue` (que fica de fora), no mesmo passo (mês ou semana).
+ */
+export function nextSeriesDates(lastDue: string, freq: Freq, add: number): string[] {
+  return seriesDueDates(lastDue, freq, add + 1).slice(1);
+}

@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import type { Entry } from '../core/types';
+import type { Entry, NewEntry } from '../core/types';
 import { parseBRL, formatBRL } from '../core/money';
 import { CATEGORIES, categoryColor, categoryEmoji } from '../core/categories';
-import { updateEntry } from '../data/entries';
+import { seriesDueDates, nextSeriesDates, type Freq } from '../core/series';
+import { updateEntry, createEntry, listSeriesEntries } from '../data/entries';
 
 const inputCls =
   'w-full rounded-lg border border-line bg-bg px-3 py-2 text-txt placeholder:text-muted focus:outline-none focus:border-blue';
+
+type Repeat = 'none' | Freq;
+const MAX_TIMES = 60;
 
 export default function EntryEditModal({
   entry,
@@ -15,32 +19,77 @@ export default function EntryEditModal({
   onDone: () => void;
 }) {
   const isIn = entry.kind === 'in';
+  const inSeries = Boolean(entry.sourceFixedId);
   const [name, setName] = useState(entry.name);
   const [description, setDescription] = useState(entry.description);
   const [category, setCategory] = useState(entry.category);
   const [valor, setValor] = useState(formatBRL(entry.amountCents));
   const [purchaseDate, setPurchaseDate] = useState(entry.purchaseDate);
   const [dueDate, setDueDate] = useState(entry.dueDate);
+  const [repeat, setRepeat] = useState<Repeat>('none');
+  const [times, setTimes] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const cents = parseBRL(valor);
   const invalid = valor.trim() !== '' && cents === null;
-  const canSave = cents !== null && name.trim() !== '' && dueDate !== '' && !busy;
+  // Série nova: "quantas vezes" é o total (mín. 2, incluindo este).
+  // Série existente: "quantos a mais" (mín. 1).
+  const minTimes = inSeries ? 1 : 2;
+  const count = parseInt(times, 10);
+  const timesOk =
+    repeat === 'none' ||
+    (Number.isInteger(count) && count >= minTimes && count <= MAX_TIMES);
+  const canSave = cents !== null && name.trim() !== '' && dueDate !== '' && timesOk && !busy;
+
+  function occurrence(d: string, seriesId: string): NewEntry {
+    return {
+      kind: entry.kind,
+      name: name.trim(),
+      description: description.trim(),
+      category,
+      amountCents: cents as number,
+      paidCents: 0,
+      paidDate: null,
+      // Entrada não tem "data da compra": espelha a data do recebimento.
+      purchaseDate: isIn ? d : purchaseDate,
+      dueDate: d,
+      sourceFixedId: seriesId,
+    };
+  }
 
   async function save() {
     if (cents === null) return;
     setBusy(true);
     setError(null);
+    const edited = {
+      name: name.trim(),
+      description: description.trim(),
+      category,
+      amountCents: cents,
+      dueDate,
+      purchaseDate: isIn ? dueDate : purchaseDate,
+    };
     try {
-      await updateEntry(entry.id, {
-        name: name.trim(),
-        description: description.trim(),
-        category,
-        amountCents: cents,
-        dueDate,
-        purchaseDate: isIn ? dueDate : purchaseDate,
-      });
+      if (repeat === 'none') {
+        await updateEntry(entry.id, edited);
+      } else if (!entry.sourceFixedId) {
+        // Vira o 1º de uma série nova e cria os próximos meses.
+        const seriesId = crypto.randomUUID();
+        await updateEntry(entry.id, { ...edited, sourceFixedId: seriesId });
+        for (const d of seriesDueDates(dueDate, repeat, count).slice(1)) {
+          await createEntry(occurrence(d, seriesId));
+        }
+      } else {
+        // Já é série: salva este e adiciona `count` meses após o último da série.
+        await updateEntry(entry.id, edited);
+        const seriesId = entry.sourceFixedId;
+        const siblings = await listSeriesEntries(seriesId);
+        const lastDue = siblings.reduce((m, e) => (e.dueDate > m ? e.dueDate : m), dueDate);
+        for (const d of nextSeriesDates(lastDue, repeat, count)) {
+          await createEntry(occurrence(d, seriesId));
+        }
+      }
       onDone();
     } catch {
       setError('Não foi possível salvar. Tente de novo.');
@@ -106,6 +155,51 @@ export default function EntryEditModal({
             </div>
           </div>
         )}
+
+        {/* Repetição */}
+        {inSeries && (
+          <p className="text-xs text-muted">
+            Este lançamento já se repete. Você pode adicionar mais meses à série.
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="ed-repeat" className="mb-1 block text-sm text-muted">
+              {inSeries ? 'Adicionar à série' : 'Repetir nos próximos meses'}
+            </label>
+            <select
+              id="ed-repeat"
+              className={inputCls}
+              value={repeat}
+              onChange={(e) => setRepeat(e.target.value as Repeat)}
+            >
+              <option value="none">{inSeries ? 'Não adicionar' : 'Não repete'}</option>
+              <option value="monthly">Mensal</option>
+              <option value="weekly">Semanal</option>
+            </select>
+          </div>
+          {repeat !== 'none' && (
+            <div>
+              <label htmlFor="ed-times" className="mb-1 block text-sm text-muted">
+                {inSeries ? 'Quantos a mais' : 'Quantas vezes'}
+              </label>
+              <input
+                id="ed-times"
+                className={inputCls}
+                inputMode="numeric"
+                placeholder={inSeries ? 'ex: 6' : 'ex: 12'}
+                value={times}
+                onChange={(e) => setTimes(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-muted">
+                {inSeries
+                  ? `Criados após o último mês (1 a ${MAX_TIMES})`
+                  : `Total de lançamentos (2 a ${MAX_TIMES})`}
+              </p>
+            </div>
+          )}
+        </div>
+
         {error && <p className="text-sm text-red">{error}</p>}
         <div className="flex gap-2 pt-1">
           <button type="button" onClick={onDone} className="flex-1 rounded-xl border border-line px-4 py-2 text-sm">

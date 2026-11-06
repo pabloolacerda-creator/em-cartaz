@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { seriesDueDates } from './series';
+import { seriesDueDates, nextSeriesDates } from './series';
 
 describe('seriesDueDates', () => {
   it('returns the single start date for count 1', () => {
@@ -33,5 +33,23 @@ describe('seriesDueDates', () => {
 
   it('steps weekly across a month boundary', () => {
     expect(seriesDueDates('2026-10-29', 'weekly', 2)).toEqual(['2026-10-29', '2026-11-05']);
+  });
+});
+
+describe('nextSeriesDates', () => {
+  it('returns dates after lastDue, excluding it (monthly)', () => {
+    expect(nextSeriesDates('2026-11-15', 'monthly', 3)).toEqual([
+      '2026-12-15',
+      '2027-01-15',
+      '2027-02-15',
+    ]);
+  });
+
+  it('returns dates after lastDue, excluding it (weekly)', () => {
+    expect(nextSeriesDates('2026-10-10', 'weekly', 2)).toEqual(['2026-10-17', '2026-10-24']);
+  });
+
+  it('returns empty when adding zero', () => {
+    expect(nextSeriesDates('2026-11-15', 'monthly', 0)).toEqual([]);
   });
 });
