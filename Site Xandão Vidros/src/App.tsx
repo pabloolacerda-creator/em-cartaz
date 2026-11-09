@@ -17,6 +17,7 @@ import FinanceiroPainel from './app/financeiro/FinanceiroPainel'
 import Lancamentos from './app/financeiro/LancamentosPage'
 import Contas from './app/financeiro/ContasPage'
 import Fluxo from './app/financeiro/FluxoPage'
+import Relatorios from './app/financeiro/RelatoriosPage'
 import RequireModulo from './app/RequireModulo'
 import Funcionarios from './app/funcionarios/FuncionariosPage'
 
@@ -53,6 +54,7 @@ export const router = createBrowserRouter(
             { path: 'lancamentos', element: <Lancamentos /> },
             { path: 'contas', element: <Contas /> },
             { path: 'fluxo', element: <Fluxo /> },
+            { path: 'relatorios', element: <Relatorios /> },
           ],
         },
       ],

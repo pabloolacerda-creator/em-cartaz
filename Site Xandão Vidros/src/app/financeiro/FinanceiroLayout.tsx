@@ -5,6 +5,7 @@ const sub = [
   { to: '/app/financeiro/lancamentos', rotulo: 'Lançamentos' },
   { to: '/app/financeiro/contas', rotulo: 'Contas' },
   { to: '/app/financeiro/fluxo', rotulo: 'Fluxo de caixa' },
+  { to: '/app/financeiro/relatorios', rotulo: 'Relatórios' },
 ]
 
 export default function FinanceiroLayout() {
