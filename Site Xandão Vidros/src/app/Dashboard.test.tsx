@@ -51,6 +51,11 @@ describe('Dashboard nav por permissão', () => {
     }
   })
 
+  it('mostra a logo da Xandão Vidros', async () => {
+    renderDash({ ...base, pode_estoque: true })
+    expect(await screen.findByAltText('Xandão Vidros')).toBeInTheDocument()
+  })
+
   it('Sair chama sair()', async () => {
     m.sair.mockResolvedValue(undefined)
     renderDash({ ...base, pode_estoque: true })

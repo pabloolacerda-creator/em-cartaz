@@ -40,7 +40,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between p-4 md:block">
           <div>
             <Link to="/app" aria-label="Ir para o início">
-              <img src="/logo-cor.png" alt="Caldemat" className="h-10 w-auto" />
+              <img src="/logo-cor.png" alt="Xandão Vidros" className="h-10 w-auto" />
             </Link>
             <div className="mt-1 text-sm text-gray-500">{perfil.nome}</div>
           </div>
