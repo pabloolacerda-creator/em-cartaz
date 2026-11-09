@@ -34,7 +34,7 @@ export default function Servicos() {
               <ul className="mt-4 space-y-3 text-zinc-300">
                 {s.itens.map((i) => (
                   <li key={i} className="flex gap-3">
-                    <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-white" />
+                    <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-zinc-300" />
                     {i}
                   </li>
                 ))}

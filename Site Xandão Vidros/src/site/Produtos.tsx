@@ -20,7 +20,7 @@ export default function Produtos() {
             >
               <div className="relative h-48 overflow-hidden bg-zinc-800">
                 <img src={p.foto} alt={p.nome} loading="lazy" className="h-full w-full object-cover transition duration-300 hover:scale-105" />
-                <div className="absolute inset-x-0 bottom-0 h-1 bg-brand" />
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-zinc-300" />
               </div>
               <div className="p-5">
                 <h3 className="text-lg font-bold text-zinc-900">{p.nome}</h3>
