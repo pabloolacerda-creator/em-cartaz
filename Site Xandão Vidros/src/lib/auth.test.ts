@@ -28,10 +28,10 @@ beforeEach(() => {
 
 describe('usuarioParaEmail', () => {
   it('minúsculas e domínio local', () => {
-    expect(usuarioParaEmail('Joao')).toBe('joao@caldemat.local')
+    expect(usuarioParaEmail('Joao')).toBe('joao@xandaovidros.local')
   })
   it('remove espaços nas pontas', () => {
-    expect(usuarioParaEmail('  Maria ')).toBe('maria@caldemat.local')
+    expect(usuarioParaEmail('  Maria ')).toBe('maria@xandaovidros.local')
   })
 })
 
@@ -51,7 +51,7 @@ describe('entrar', () => {
     m.signInWithPassword.mockResolvedValue({ error: null })
     expect(await entrar('Joao', 'segredo')).toEqual({})
     expect(m.signInWithPassword).toHaveBeenCalledWith({
-      email: 'joao@caldemat.local',
+      email: 'joao@xandaovidros.local',
       password: 'segredo',
     })
   })

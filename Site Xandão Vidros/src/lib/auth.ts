@@ -4,7 +4,7 @@ import type { Perfil } from '../types'
 export const ERRO_LOGIN = 'Usuário ou senha inválidos'
 
 export function usuarioParaEmail(usuario: string): string {
-  return `${usuario.trim().toLowerCase()}@caldemat.local`
+  return `${usuario.trim().toLowerCase()}@xandaovidros.local`
 }
 
 export async function entrar(usuario: string, senha: string): Promise<{ erro?: string }> {
