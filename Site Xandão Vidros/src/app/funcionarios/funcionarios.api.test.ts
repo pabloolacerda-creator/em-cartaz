@@ -16,7 +16,7 @@ const thenable = (result: any) => {
   return o
 }
 
-const perms = { pode_materia_prima: true, pode_estoque: false, pode_clientes: false, pode_pedidos: true, pode_produtos: false, pode_financeiro: false, pode_leads: false }
+const perms = { pode_materia_prima: true, pode_estoque: false, pode_clientes: false, pode_pedidos: true, pode_produtos: false, pode_financeiro: false }
 
 describe('funcionarios.api', () => {
   beforeEach(() => {

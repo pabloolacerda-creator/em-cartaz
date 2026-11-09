@@ -1,13 +1,22 @@
 const SERVICOS = [
   {
-    nome: 'Recuperação de caixa d’água',
-    itens: ['Limpeza', 'Reparos estruturais', 'Impermeabilização'],
+    nome: 'Residencial',
+    itens: [
+      'Portas e janelas de vidro temperado',
+      'Box para banheiro e espelhos sob medida',
+      'Fechamento de sacadas e envidraçamento de varandas',
+      'Divisórias e guarda-corpo de vidro',
+      'Coberturas, prateleiras, tampos de mesa e nichos de vidro',
+    ],
   },
   {
-    nome: 'Conformação de metais',
+    nome: 'Comercial',
     itens: [
-      'Corte, dobra e calandragem de chapas, tubos e cantoneiras',
-      'Curvas em tubo, barra chata e metalon',
+      'Fachadas de vidro, pele de vidro e vitrines',
+      'Portas de vidro temperado e portas automáticas',
+      'Divisórias corporativas e fechamento de ambientes',
+      'Balcões, expositores e guichês de atendimento',
+      'Fechamento de lojas',
     ],
   },
 ]
@@ -17,7 +26,7 @@ export default function Servicos() {
     <section id="servicos" aria-label="Serviços" className="scroll-mt-24 bg-zinc-900 py-16 text-white md:py-24">
       <div className="mx-auto max-w-6xl px-4">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vidro">Serviços</p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight md:text-4xl">Do reparo à peça sob medida.</h2>
+        <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight md:text-4xl">Do residencial ao comercial.</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {SERVICOS.map((s) => (
             <article key={s.nome} className="rounded-lg border border-zinc-700 bg-zinc-800/60 p-6 md:p-8">

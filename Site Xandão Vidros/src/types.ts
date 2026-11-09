@@ -8,7 +8,6 @@ export type Perfil = {
   pode_pedidos: boolean
   pode_produtos: boolean
   pode_financeiro: boolean
-  pode_leads: boolean
   ativo: boolean
   // Dados cadastrais (opcionais)
   cpf?: string | null
@@ -18,7 +17,7 @@ export type Perfil = {
   email?: string | null
 }
 
-export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'financeiro' | 'leads' | 'funcionarios'
+export type Modulo = 'materia_prima' | 'estoque' | 'clientes' | 'pedidos' | 'produtos' | 'financeiro' | 'funcionarios'
 
 export type ContaFinanceira = {
   id: string
@@ -98,24 +97,6 @@ export type Cliente = {
   endereco: string | null
   obs: string | null
   ativo: boolean
-}
-
-export type StatusLead = 'novo' | 'contatado' | 'ganho' | 'perdido'
-
-export type Lead = {
-  id: string
-  criado_em: string
-  nome: string
-  whatsapp: string
-  documento: string | null
-  capacidade_litros: number | null
-  bacia_contencao: boolean | null
-  cidade: string | null
-  status: StatusLead
-  utm_source: string | null
-  utm_medium: string | null
-  utm_campaign: string | null
-  obs: string | null
 }
 
 export type StatusPedido = 'emitido' | 'aprovado' | 'reprovado' | 'faturado'

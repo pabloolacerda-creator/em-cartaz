@@ -1,9 +1,9 @@
 import { WHATSAPP_URL } from './dados'
 
 const NUMEROS = [
-  { v: '+40', r: 'anos de indústria' },
-  { v: '3', r: 'linhas de produto' },
-  { v: 'MT', r: 'base em Várzea Grande' },
+  { v: 'Sob medida', r: 'cada peça no tamanho certo' },
+  { v: 'Temperado', r: 'segurança e resistência' },
+  { v: 'Cuiabá · VG', r: 'atendemos a Grande Cuiabá' },
 ]
 
 export default function Home() {
@@ -11,7 +11,7 @@ export default function Home() {
     <section id="topo" aria-label="Início" className="relative overflow-hidden bg-zinc-900 pt-28 text-white md:pt-24">
       <img
         src="/fotos/banner-principal.webp"
-        alt="Tanques e caixas d’água metálicas fabricados pela Caldemat"
+        alt="Fechamento de vidro temperado instalado pela Xandão Vidros"
         className="absolute inset-0 h-full w-full object-cover"
         loading="eager"
       />
@@ -20,21 +20,22 @@ export default function Home() {
       <div aria-hidden="true" className="absolute inset-0 bg-zinc-950/40 md:bg-transparent" />
       <div className="relative mx-auto max-w-6xl px-4 pb-16 md:pb-24 md:pt-12">
         <div className="max-w-2xl">
-          <p className="mb-4 inline-block border-l-4 border-brand pl-3 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">
-            Indústria Metalúrgica · Várzea Grande/MT
+          <p className="mb-4 inline-block border-l-4 border-vidro pl-3 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">
+            Vidraçaria · Cuiabá e Várzea Grande/MT
           </p>
           <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-            Mais de 40 anos <span className="text-vidro">moldando aço</span> para o campo e a obra.
+            Vidro com <span className="text-vidro">segurança, elegância e resistência</span>.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-zinc-300">
-            Tanques, reservatórios e conformação de metais sob medida para o agronegócio, fazendas e construtoras.
+            Box, espelhos, portas, janelas, fachadas e fechamentos de vidro sob medida — do projeto
+            residencial ao comercial.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
               href={WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-md bg-brand px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-vidro focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="inline-flex items-center justify-center rounded-md bg-vidro px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               Pedir orçamento no WhatsApp
             </a>

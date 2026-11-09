@@ -6,7 +6,7 @@ export default function Header() {
     <header className="fixed inset-x-0 top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <a href="#topo" className="shrink-0">
-          <img src="/logo-cor.png" alt="Caldemat" className="h-10 w-auto" />
+          <img src="/logo-cor.png" alt="Xandão Vidros" className="h-10 w-auto" />
         </a>
         <nav aria-label="Principal" className="hidden items-center gap-8 text-sm font-medium text-zinc-700 md:flex">
           {NAV.map((n) => (
@@ -16,12 +16,6 @@ export default function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <Link
-            to="/orcamento"
-            className="hidden rounded-md border border-brand px-4 py-2 text-sm font-semibold text-brand transition hover:bg-brand hover:text-white sm:inline-block"
-          >
-            Orçamento
-          </Link>
           <Link
             to="/app/login"
             className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"

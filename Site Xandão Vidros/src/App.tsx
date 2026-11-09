@@ -1,6 +1,5 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import SitePublico from './site/SitePublico'
-import Orcamento from './site/Orcamento'
 import Login from './app/Login'
 import RequireAuth from './app/RequireAuth'
 import Dashboard from './app/Dashboard'
@@ -20,14 +19,12 @@ import Contas from './app/financeiro/ContasPage'
 import Fluxo from './app/financeiro/FluxoPage'
 import RequireModulo from './app/RequireModulo'
 import Funcionarios from './app/funcionarios/FuncionariosPage'
-import Leads from './app/leads/LeadsPage'
 
-const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel Caldemat</h1>
+const Inicio = () => <h1 className="text-xl font-semibold">Bem-vindo ao painel Xandão Vidros</h1>
 
 export const router = createBrowserRouter(
   [
     { path: '/', element: <SitePublico /> },
-    { path: '/orcamento', element: <Orcamento /> },
     { path: '/app/login', element: <Login /> },
     {
       path: '/app',
@@ -44,7 +41,6 @@ export const router = createBrowserRouter(
         { path: 'cadastro/clientes', element: <RequireModulo modulo="clientes"><Clientes /></RequireModulo> },
         { path: 'cadastro/funcionarios', element: <Funcionarios /> },
         { path: 'estoque', element: <RequireModulo modulo="estoque"><Estoque /></RequireModulo> },
-        { path: 'leads', element: <RequireModulo modulo="leads"><Leads /></RequireModulo> },
         { path: 'pedidos', element: <RequireModulo modulo="pedidos"><Pedidos /></RequireModulo> },
         { path: 'pedidos/:id', element: <RequireModulo modulo="pedidos"><PedidoDetalhe /></RequireModulo> },
         { path: 'pedidos/:id/editar', element: <RequireModulo modulo="pedidos"><PedidoEditar /></RequireModulo> },

@@ -13,10 +13,9 @@ const MODULOS: { chave: keyof Permissoes; rotulo: string }[] = [
   { chave: 'pode_pedidos', rotulo: 'Pedidos' },
   { chave: 'pode_produtos', rotulo: 'Produtos/Serviços' },
   { chave: 'pode_financeiro', rotulo: 'Financeiro' },
-  { chave: 'pode_leads', rotulo: 'Leads' },
 ]
 
-const PERMS_VAZIAS: Permissoes = { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false, pode_produtos: false, pode_financeiro: false, pode_leads: false }
+const PERMS_VAZIAS: Permissoes = { pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false, pode_produtos: false, pode_financeiro: false }
 const VAZIO = {
   usuario: '', senha: '', nome: '', is_admin: false, permissoes: PERMS_VAZIAS,
   cpf: '', telefone: '', cargo: '', data_admissao: '', email: '',

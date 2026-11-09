@@ -7,10 +7,9 @@ const base: Perfil = {
   pode_materia_prima: false, pode_estoque: false, pode_clientes: false, pode_pedidos: false,
   pode_produtos: false,
   pode_financeiro: false,
-  pode_leads: false,
   ativo: true,
 }
-const todos: Modulo[] = ['materia_prima', 'estoque', 'clientes', 'pedidos', 'produtos', 'financeiro', 'leads', 'funcionarios']
+const todos: Modulo[] = ['materia_prima', 'estoque', 'clientes', 'pedidos', 'produtos', 'financeiro', 'funcionarios']
 
 describe('podeAcessar', () => {
   it('admin acessa todos os módulos', () => {
@@ -26,7 +25,6 @@ describe('podeAcessar', () => {
     expect(podeAcessar({ ...base, pode_pedidos: true }, 'pedidos')).toBe(true)
     expect(podeAcessar({ ...base, pode_produtos: true }, 'produtos')).toBe(true)
     expect(podeAcessar({ ...base, pode_financeiro: true }, 'financeiro')).toBe(true)
-    expect(podeAcessar({ ...base, pode_leads: true }, 'leads')).toBe(true)
   })
   it('funcionarios só para admin', () => {
     const p = { ...base, pode_materia_prima: true, pode_estoque: true, pode_clientes: true, pode_pedidos: true }

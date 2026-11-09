@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import SitePublico from './SitePublico'
+import { WHATSAPP_URL } from './dados'
 
 function setup() {
   return render(
@@ -12,16 +13,20 @@ function setup() {
 }
 
 describe('Site institucional', () => {
+  it('WHATSAPP_URL usa o número da Xandão com DDI 55', () => {
+    expect(WHATSAPP_URL).toBe('https://wa.me/5565984031635')
+  })
+
   it('renderiza as seções Empresa, Produtos, Serviços e Contato', () => {
     setup()
     expect(screen.getByRole('region', { name: 'Empresa' })).toBeInTheDocument()
     const produtos = screen.getByRole('region', { name: 'Produtos' })
-    expect(within(produtos).getByText('Tanques aéreos')).toBeInTheDocument()
-    expect(within(produtos).getByText('Tanques ovais agrícolas')).toBeInTheDocument()
-    expect(within(produtos).getByText('Caixas d’água metálicas')).toBeInTheDocument()
+    expect(within(produtos).getByText('Box para banheiro')).toBeInTheDocument()
+    expect(within(produtos).getByText('Espelhos sob medida')).toBeInTheDocument()
+    expect(within(produtos).getByText('Portas e janelas de vidro')).toBeInTheDocument()
     const servicos = screen.getByRole('region', { name: 'Serviços' })
-    expect(within(servicos).getByText('Recuperação de caixa d’água')).toBeInTheDocument()
-    expect(within(servicos).getByText('Conformação de metais')).toBeInTheDocument()
+    expect(within(servicos).getByText('Residencial')).toBeInTheDocument()
+    expect(within(servicos).getByText('Comercial')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Contato' })).toBeInTheDocument()
   })
 
@@ -38,17 +43,17 @@ describe('Site institucional', () => {
   it('rodapé mostra WhatsApp e Instagram', () => {
     setup()
     const rodape = screen.getByRole('contentinfo')
-    expect(within(rodape).getByText('(65) 99359-7968')).toBeInTheDocument()
-    expect(within(rodape).getByText('@caldemat.ind')).toBeInTheDocument()
+    expect(within(rodape).getByText('(65) 98403-1635')).toBeInTheDocument()
+    expect(within(rodape).getByText('@xandaovidros1')).toBeInTheDocument()
   })
 
   it('cada card de produto mostra sua foto', () => {
     setup()
     const produtos = screen.getByRole('region', { name: 'Produtos' })
     const esperado: [string, string][] = [
-      ['Tanques aéreos', 'tanque-aereo'],
-      ['Tanques ovais agrícolas', 'tanque-oval'],
-      ['Caixas d’água metálicas', 'caixas-dagua'],
+      ['Box para banheiro', 'box'],
+      ['Espelhos sob medida', 'espelhos'],
+      ['Portas e janelas de vidro', 'portas-janelas'],
     ]
     for (const [alt, arquivo] of esperado) {
       const img = within(produtos).getByRole('img', { name: alt })

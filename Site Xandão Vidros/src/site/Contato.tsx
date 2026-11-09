@@ -1,12 +1,11 @@
-import { EMAIL, ENDERECO, INSTAGRAM, INSTAGRAM_URL, TELEFONE, WHATSAPP_URL } from './dados'
+import { ENDERECO, INSTAGRAM, INSTAGRAM_URL, TELEFONE, WHATSAPP_URL } from './dados'
 
 const link = 'hover:text-brand'
 
 export default function Contato() {
   const itens: [string, React.ReactNode][] = [
-    ['WhatsApp / Telefone', <a href="tel:+5565993597968" className={link}>{TELEFONE}</a>],
-    ['E-mail', <a href={`mailto:${EMAIL}`} className={`break-all ${link}`}>{EMAIL}</a>],
-    ['Endereço', <span>{ENDERECO}</span>],
+    ['WhatsApp / Telefone', <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className={link}>{TELEFONE}</a>],
+    ['Atendimento', <span>{ENDERECO}</span>],
     [
       'Instagram',
       <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className={link}>
