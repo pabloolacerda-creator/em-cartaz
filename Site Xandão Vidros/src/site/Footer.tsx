@@ -8,13 +8,13 @@ export default function Footer() {
         <ul className="space-y-1 text-sm">
           <li>
             WhatsApp:{' '}
-            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="text-white hover:text-vidro">
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="text-white hover:text-zinc-300">
               <span>{TELEFONE}</span>
             </a>
           </li>
           <li>
             Instagram:{' '}
-            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="text-white hover:text-vidro">
+            <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="text-white hover:text-zinc-300">
               <span>{INSTAGRAM}</span>
             </a>
           </li>

@@ -25,7 +25,7 @@ export default function Servicos() {
   return (
     <section id="servicos" aria-label="Serviços" className="scroll-mt-24 bg-zinc-900 py-16 text-white md:py-24">
       <div className="mx-auto max-w-6xl px-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-vidro">Serviços</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">Serviços</p>
         <h2 className="mt-2 max-w-2xl text-3xl font-extrabold tracking-tight md:text-4xl">Do residencial ao comercial.</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {SERVICOS.map((s) => (
@@ -34,7 +34,7 @@ export default function Servicos() {
               <ul className="mt-4 space-y-3 text-zinc-300">
                 {s.itens.map((i) => (
                   <li key={i} className="flex gap-3">
-                    <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-vidro" />
+                    <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-white" />
                     {i}
                   </li>
                 ))}
