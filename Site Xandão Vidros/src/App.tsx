@@ -13,7 +13,6 @@ import Pedidos from './app/pedidos/PedidosPage'
 import PedidoDetalhe from './app/pedidos/PedidoDetalhe'
 import PedidoEditar from './app/pedidos/PedidoEditar'
 import PedidoOS from './app/pedidos/PedidoOS'
-import Calculadora from './app/calculadora/CalculadoraPage'
 import FinanceiroLayout from './app/financeiro/FinanceiroLayout'
 import FinanceiroPainel from './app/financeiro/FinanceiroPainel'
 import Lancamentos from './app/financeiro/LancamentosPage'
@@ -50,7 +49,6 @@ export const router = createBrowserRouter(
         { path: 'pedidos/:id', element: <RequireModulo modulo="pedidos"><PedidoDetalhe /></RequireModulo> },
         { path: 'pedidos/:id/editar', element: <RequireModulo modulo="pedidos"><PedidoEditar /></RequireModulo> },
         { path: 'pedidos/:id/os', element: <RequireModulo modulo="pedidos"><PedidoOS /></RequireModulo> },
-        { path: 'calculadora', element: <RequireModulo modulo="pedidos"><Calculadora /></RequireModulo> },
         {
           path: 'financeiro',
           element: <RequireModulo modulo="financeiro"><FinanceiroLayout /></RequireModulo>,

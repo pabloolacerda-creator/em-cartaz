@@ -26,26 +26,6 @@ describe('PedidoForm — item de produto', () => {
     expect(norm(screen.getByTestId('total-item-0').textContent)).toBe('R$ 360,00')
   })
 
-  it('"Calcular chapa" calcula pela tabela e salva como item com descrição e valor', async () => {
-    const onSubmit = setup()
-    fireEvent.change(screen.getByLabelText(/^cliente$/i), { target: { value: 'c1' } })
-    fireEvent.change(screen.getByLabelText(/produto\/serviço/i), { target: { value: '__chapa__' } })
-    fireEvent.change(screen.getByLabelText(/espessura/i), { target: { value: '1/2"' } })
-    fireEvent.change(screen.getByLabelText(/largura/i), { target: { value: '1' } })
-    fireEvent.change(screen.getByLabelText(/comprimento/i), { target: { value: '2' } })
-    fireEvent.change(screen.getByLabelText(/valor do kg/i), { target: { value: '8,50' } })
-    fireEvent.change(screen.getByLabelText(/quantidade/i), { target: { value: '2' } })
-    expect(screen.getByTestId('area-item-0').textContent).toBe('2,00 m² × 2 = 4,00 m²')
-    expect(screen.getByTestId('peso-item-0').textContent).toBe('196,00 kg/pç')
-    expect(norm(screen.getByTestId('total-item-0').textContent)).toBe('R$ 3.332,00') // 2 × (2 m² × 98 × 8,50)
-    fireEvent.click(screen.getByRole('button', { name: /salvar pedido/i }))
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1))
-    const item = (onSubmit.mock.calls[0] as any)[0].itens[0]
-    expect(item).toMatchObject({ quantidade: 2, valor_unitario: 1666, obs: null })
-    expect(item.descricao).toMatch(/^Chapa 1\/2" \(12,50 mm\) 1,00 × 2,00 m — 196,00 kg\/pç$/)
-    expect(item.produto_id).toBeUndefined()
-  })
-
   it('produto m² mostra a área calculada antes do valor', () => {
     setup()
     fireEvent.change(screen.getByLabelText(/produto\/serviço/i), { target: { value: 'pr1' } })

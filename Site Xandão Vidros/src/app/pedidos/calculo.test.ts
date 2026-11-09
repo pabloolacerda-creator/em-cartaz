@@ -15,6 +15,9 @@ describe('calcularValorItem', () => {
   it('m²: quantidade × largura × altura × valor', () => {
     expect(calcularValorItem('m²', 2, 1.5, 2, 120)).toBe(720)
   })
+  it('vidro por m²: 0,80 × 1,90 m × 2 un a R$ 120/m² = R$ 364,80', () => {
+    expect(calcularValorItem('m²', 2, 0.8, 1.9, 120)).toBe(364.8)
+  })
   it('linear: quantidade × comprimento (largura) × valor', () => {
     expect(calcularValorItem('m linear', 3, 4, 0, 10)).toBe(120)
   })
