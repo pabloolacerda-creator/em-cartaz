@@ -1,6 +1,6 @@
-# Caldemat — site + painel
+# Xandão Vidros — site + painel
 
-Site institucional público (`/`) e painel interno (`/app`) da Caldemat, com login por usuário e senha e módulos de Matéria-Prima, Estoque, Clientes, Pedidos e Funcionários (admin). Stack: Vite + React + TypeScript + Tailwind; backend Supabase (Postgres, Auth, RLS, Edge Function).
+Site institucional público (`/`) e painel interno (`/app`) da Xandão Vidros, com login por usuário e senha e módulos de Matéria-Prima, Estoque, Clientes, Catálogo (Produtos/Serviços), Pedidos/Orçamentos e Financeiro. Stack: Vite + React + TypeScript + Tailwind; backend Supabase (Postgres, Auth, RLS, Edge Function). O acesso ao painel é de um único administrador (o Xandão).
 
 ## Rodar localmente
 
@@ -18,7 +18,7 @@ npm run build   # build de produção (dist/)
 
 - `/` site público; `/app` painel (login em `/app/login`)
 - `src/site` site, `src/app` painel (um diretório por módulo), `src/lib` auth/cliente Supabase
-- `supabase/migrations` (0001 schema, 0002 RLS), `supabase/functions/admin-users` (gestão de funcionários, usa service role), `supabase/seed_admin.sql`
+- `supabase/migrations` (0001 schema, 0002 RLS, ... 0009), `supabase/functions/admin-users` (gestão de usuários, usa service role), `supabase/seed_admin.sql`
 - `vercel.json`: rewrite SPA (todas as rotas vão para `/index.html`)
 - `docs/relatorio-dos-caminhos.md`: guia para o cliente
 
@@ -26,18 +26,18 @@ npm run build   # build de produção (dist/)
 
 **a) Criar o projeto Supabase** em supabase.com (anote a senha do banco).
 
-**b) Aplicar as migrations**, nesta ordem:
+**b) Aplicar as migrations**, em ordem (0001 → 0009):
 - com CLI: `supabase login`, `supabase link --project-ref <ref>`, `supabase db push`; ou
-- colando no SQL Editor: primeiro `supabase/migrations/0001_schema.sql`, depois `0002_rls.sql`.
+- colando no SQL Editor cada arquivo de `supabase/migrations/` na ordem numérica.
 
 **c) Publicar a Edge Function:**
 ```bash
 supabase functions deploy admin-users
 supabase secrets set SERVICE_ROLE_KEY=<service_role key>
 ```
-O Supabase rejeita nomes de secret que começam com `SUPABASE_`, por isso o nome é `SERVICE_ROLE_KEY` (a função já o usa como alternativa). A chave de service role pode já ser injetada pela plataforma; este comando só é necessário se a função não conseguir lê-la. A chave fica em Project Settings > API. Nunca a coloque no front-end nem no Vercel. `SUPABASE_URL` e `SUPABASE_ANON_KEY` já são injetadas pelo Supabase nas Edge Functions.
+O Supabase rejeita nomes de secret que começam com `SUPABASE_`, por isso o nome é `SERVICE_ROLE_KEY` (a função já o usa como alternativa). A chave de service role fica em Project Settings > API. Nunca a coloque no front-end nem no Vercel.
 
-**d) Semear o primeiro admin:** em Authentication > Users crie `admin@caldemat.local` com senha (Auto Confirm); depois rode `supabase/seed_admin.sql` no SQL Editor (usa o id do usuário do Auth como `perfis.id` e marca `is_admin` e todos os `pode_*`).
+**d) Semear o administrador:** em Authentication > Users crie `admin@xandaovidros.local` com senha (Auto Confirm); depois rode `supabase/seed_admin.sql` no SQL Editor.
 
 **d2) Cadastro público:** em Authentication > Sign In / Providers, desative "Allow new users to sign up" para evitar usuários `*.local` indesejados.
 
@@ -45,15 +45,15 @@ O Supabase rejeita nomes de secret que começam com `SUPABASE_`, por isso o nome
 
 **e) Pegar URL + anon key** (Project Settings > API) para as variáveis abaixo.
 
-**f) Deploy no Vercel:** importe o repositório (Root Directory: `Site caldemat`, framework Vite), configure as variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (usadas no build; não coloque segredos no código) e faça o deploy. Teste em `<url>/app/login`.
+**f) Deploy no Vercel:** importe o repositório (Root Directory: `Site Xandão Vidros`, framework Vite), configure as variáveis de ambiente `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` e faça o deploy. Teste em `<url>/app/login`.
 
-**g) Domínio:** depois, em Vercel > Domains adicione `caldemat.com.br` e aponte o DNS (registros indicados pela Vercel) no Registro.br. Pendente de DNS.
+**g) Domínio (opcional):** em Vercel > Domains adicione o domínio próprio e aponte o DNS conforme indicado pela Vercel.
 
 ### Checklist de verificação fim-a-fim (na URL publicada)
 
 1. Entrar como admin.
-2. Criar um funcionário só com Estoque; entrar com ele e confirmar que vê só Estoque.
-3. Cadastrar material; dar entrada e saída (saída acima do saldo mostra aviso, mas registra).
-4. Cadastrar cliente.
-5. Criar pedido com 2 itens e conferir o total.
-6. Resetar a senha do funcionário e entrar com a nova.
+2. Cadastrar um tipo de vidro em Produtos/Serviços (unidade m², preço por m²).
+3. Cadastrar um cliente.
+4. Criar um orçamento com um item de vidro (largura × altura) e conferir o total em m².
+5. Imprimir/salvar o PDF do orçamento (com o timbrado).
+6. Aprovar e faturar o pedido; conferir a conta a receber no Financeiro.
