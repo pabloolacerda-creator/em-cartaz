@@ -28,6 +28,9 @@ describe('calcularValorItem', () => {
     expect(calcularValorItem('m²', 1, NaN, 2, 120)).toBe(0)
     expect(calcularValorItem('Unidade(s)', NaN, 0, 0, 10)).toBe(0)
   })
+  it('item sem preço (catálogo sem valor): total = 0, não quebra', () => {
+    expect(calcularValorItem('m²', 2, 0.8, 1.9, NaN)).toBe(0)
+  })
   it('arredonda a centavos sem erro de ponto flutuante', () => {
     expect(calcularValorItem('Unidade(s)', 3, 0, 0, 0.1)).toBe(0.3)
   })

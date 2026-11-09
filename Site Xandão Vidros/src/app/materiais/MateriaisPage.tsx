@@ -3,7 +3,7 @@ import type { Material } from '../../types'
 import { listarMateriais, criarMaterial, editarMaterial, inativarMaterial, type MaterialInput } from './materiais.api'
 import { UNIDADES } from '../../lib/unidades'
 
-const FORMAS = ['Chapa', 'Tubo', 'Barra', 'Cantoneira', 'Perfil', 'Outro']
+const FORMAS = ['Vidro temperado', 'Vidro comum', 'Espelho', 'Ferragem', 'Alumínio', 'Outro']
 
 const msg = (e: unknown) => (e instanceof Error ? e.message : (e as { message?: string })?.message ?? 'Erro inesperado')
 
