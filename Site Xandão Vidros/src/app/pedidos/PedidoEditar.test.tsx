@@ -1,0 +1,86 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { MemoryRouter, Routes, Route } from 'react-router-dom'
+
+const api = vi.hoisted(() => ({ obterPedido: vi.fn(), editarPedido: vi.fn(), aprovarPedido: vi.fn(), reprovarPedido: vi.fn() }))
+const cli = vi.hoisted(() => ({ listarClientes: vi.fn() }))
+const prod = vi.hoisted(() => ({ listarProdutos: vi.fn() }))
+vi.mock('./pedidos.api', () => api)
+vi.mock('../clientes/clientes.api', () => cli)
+vi.mock('../produtos/produtos.api', () => prod)
+
+import PedidoEditar from './PedidoEditar'
+
+const ana = { id: 'c1', nome: 'Ana', documento: '12.345', endereco: 'Rua X', telefone: '65 99', ativo: true }
+const bia = { id: 'c2', nome: 'Bia', ativo: true }
+
+function abrir() {
+  return render(
+    <MemoryRouter initialEntries={['/app/pedidos/p1/editar']} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Routes>
+        <Route path="/app/pedidos/:id/editar" element={<PedidoEditar />} />
+        <Route path="/app/pedidos/:id" element={<div>DETALHE</div>} />
+      </Routes>
+    </MemoryRouter>,
+  )
+}
+
+describe('PedidoEditar', () => {
+  beforeEach(() => {
+    Object.values(api).forEach((f) => f.mockReset())
+    cli.listarClientes.mockReset()
+    cli.listarClientes.mockResolvedValue([ana, bia])
+    prod.listarProdutos.mockReset()
+    prod.listarProdutos.mockResolvedValue([])
+    api.obterPedido.mockResolvedValue({
+      pedido: { id: 'p1', cliente_id: 'c1', data: '2026-03-05', obs: 'nota', usuario_id: null, status: 'emitido', prazo_entrega: '10 dias', forma_pagamento: 'Boleto' },
+      itens: [{ id: 'i1', pedido_id: 'p1', descricao: 'Tanque', quantidade: 2, valor_unitario: 1500, obs: 'inox' }],
+    })
+    api.editarPedido.mockResolvedValue(undefined)
+  })
+
+  it('prefill com os dados do pedido e salva as alterações chamando editarPedido', async () => {
+    abrir()
+    // prefill: item e bloco 3
+    const desc = (await screen.findAllByLabelText(/descrição/i))[0] as HTMLInputElement
+    expect(desc.value).toBe('Tanque')
+    expect((screen.getByLabelText(/prazo de entrega/i) as HTMLInputElement).value).toBe('10 dias')
+    expect((screen.getByLabelText(/formas de pagamento/i) as HTMLInputElement).value).toBe('Boleto')
+
+    // altera a descrição e salva
+    fireEvent.change(desc, { target: { value: 'Tanque aéreo' } })
+    fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
+
+    await waitFor(() => expect(api.editarPedido).toHaveBeenCalledTimes(1))
+    expect(api.editarPedido).toHaveBeenCalledWith('p1', {
+      cliente_id: 'c1',
+      obs: 'nota',
+      prazo_entrega: '10 dias',
+      forma_pagamento: 'Boleto',
+      desconto: 0,
+      desconto_tipo: 'valor',
+      itens: [{ descricao: 'Tanque aéreo', quantidade: 2, valor_unitario: 1500, obs: 'inox' }],
+    })
+    // volta para a tela de detalhe
+    expect(await screen.findByText('DETALHE')).toBeInTheDocument()
+  })
+  it('orçamento emitido: "Aprovar" salva as alterações e aprova', async () => {
+    api.aprovarPedido.mockResolvedValue(undefined)
+    abrir()
+    await screen.findAllByLabelText(/descrição/i)
+    fireEvent.click(screen.getByRole('button', { name: /^aprovar$/i }))
+    await waitFor(() => expect(api.editarPedido).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(api.aprovarPedido).toHaveBeenCalledWith('p1'))
+    expect(await screen.findByText('DETALHE')).toBeInTheDocument()
+  })
+
+  it('pedido já aprovado: não oferece Aprovar/Reprovar, só Imprimir', async () => {
+    const atual = await api.obterPedido()
+    api.obterPedido.mockResolvedValue({ ...atual, pedido: { ...atual.pedido, status: 'aprovado' } })
+    abrir()
+    await screen.findAllByLabelText(/descrição/i)
+    expect(screen.queryByRole('button', { name: /^aprovar$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^reprovar$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /^imprimir$/i })).toBeInTheDocument()
+  })
+})

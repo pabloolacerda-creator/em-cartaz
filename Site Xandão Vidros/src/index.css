@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Cabeçalho institucional do pedido: oculto na tela, visível só na impressão. */
+.print-only {
+  display: none;
+}
+
+/* Impressão: esconde a navegação lateral e elementos marcados com .no-print. */
+@media print {
+  /* Base de 10pt: como o layout usa rem, toda a folha encolhe na proporção. */
+  html {
+    font-size: 10pt;
+  }
+  aside,
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
