@@ -15,9 +15,9 @@ export default function Home() {
         className="absolute inset-0 h-full w-full object-cover"
         loading="eager"
       />
-      {/* Gradiente escuro por cima da foto, para o texto ficar legível */}
-      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/40" />
-      <div aria-hidden="true" className="absolute inset-0 bg-zinc-950/40 md:bg-transparent" />
+      {/* Gradiente escuro por cima da foto, para o texto ficar legível (mais leve à direita) */}
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-zinc-950/80 via-zinc-950/45 to-transparent" />
+      <div aria-hidden="true" className="absolute inset-0 bg-zinc-950/20 md:bg-transparent" />
       <div className="relative mx-auto max-w-6xl px-4 pb-16 md:pb-24 md:pt-12">
         <div className="max-w-2xl">
           <p className="mb-4 inline-block border-l-4 border-vidro pl-3 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">
