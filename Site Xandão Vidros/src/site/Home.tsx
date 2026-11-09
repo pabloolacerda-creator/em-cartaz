@@ -24,7 +24,7 @@ export default function Home() {
             Indústria Metalúrgica · Várzea Grande/MT
           </p>
           <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-            Mais de 40 anos <span className="text-emerald-400">moldando aço</span> para o campo e a obra.
+            Mais de 40 anos <span className="text-vidro">moldando aço</span> para o campo e a obra.
           </h1>
           <p className="mt-6 max-w-xl text-lg text-zinc-300">
             Tanques, reservatórios e conformação de metais sob medida para o agronegócio, fazendas e construtoras.
@@ -34,7 +34,7 @@ export default function Home() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-md bg-brand px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="inline-flex items-center justify-center rounded-md bg-brand px-6 py-3 font-semibold text-white shadow-lg transition hover:bg-vidro focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               Pedir orçamento no WhatsApp
             </a>
@@ -51,7 +51,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-zinc-700 px-4">
           {NUMEROS.map((n) => (
             <div key={n.r} className="px-2 py-5 text-center sm:px-6 sm:text-left">
-              <dt className="text-2xl font-extrabold text-emerald-400 sm:text-3xl">{n.v}</dt>
+              <dt className="text-2xl font-extrabold text-vidro sm:text-3xl">{n.v}</dt>
               <dd className="text-xs text-zinc-400 sm:text-sm">{n.r}</dd>
             </div>
           ))}

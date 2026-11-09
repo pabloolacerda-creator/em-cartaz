@@ -26,7 +26,7 @@ export default function Contato() {
             href={WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
-            className="mt-8 inline-flex items-center justify-center rounded-md bg-brand px-6 py-3 font-semibold text-white shadow transition hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            className="mt-8 inline-flex items-center justify-center rounded-md bg-brand px-6 py-3 font-semibold text-white shadow transition hover:bg-vidro focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
           >
             Chamar no WhatsApp
           </a>

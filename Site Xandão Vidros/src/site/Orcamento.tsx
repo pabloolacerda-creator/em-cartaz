@@ -143,7 +143,7 @@ export default function Orcamento() {
             <button
               type="submit"
               disabled={enviando}
-              className="mt-5 w-full rounded-md bg-brand px-6 py-3 font-semibold text-white shadow transition hover:bg-emerald-800 disabled:opacity-50"
+              className="mt-5 w-full rounded-md bg-brand px-6 py-3 font-semibold text-white shadow transition hover:bg-vidro disabled:opacity-50"
             >
               Quero meu orçamento
             </button>

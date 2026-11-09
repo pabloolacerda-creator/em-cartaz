@@ -99,7 +99,7 @@ export default function LeadsPage() {
                       href={linkWhatsappLead(l)}
                       target="_blank"
                       rel="noreferrer"
-                      className="rounded bg-brand px-3 py-1 font-semibold text-white hover:bg-emerald-800"
+                      className="rounded bg-brand px-3 py-1 font-semibold text-white hover:bg-vidro"
                     >
                       Chamar no WhatsApp
                     </a>
