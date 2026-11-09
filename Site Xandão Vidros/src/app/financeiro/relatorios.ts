@@ -1,4 +1,4 @@
-import type { Lancamento, Cliente } from '../../types'
+import type { Lancamento, Cliente, Pedido } from '../../types'
 import { dentroDoPeriodo, type Periodo } from '../../lib/periodo'
 
 // Soma em centavos para evitar erro de ponto flutuante.
@@ -47,6 +47,20 @@ export function emAbertoResumo(lancs: Lancamento[]): AbertoResumo {
     itensPagar,
     itensReceber,
   }
+}
+
+// Lista de entradas (receita) ou saídas (despesa) realizadas no período, por data de pagamento.
+export function realizados(lancs: Lancamento[], periodo: Periodo, tipo: 'receita' | 'despesa'): Lancamento[] {
+  return lancs
+    .filter((l) => l.tipo === tipo && realizado(l, periodo))
+    .sort((a, b) => (a.pago_em ?? '').localeCompare(b.pago_em ?? ''))
+}
+
+// Pedidos faturados (status faturado) com faturado_em dentro do período, mais recente primeiro.
+export function pedidosFaturadosNoPeriodo<T extends Pick<Pedido, 'status' | 'faturado_em'>>(pedidos: T[], periodo: Periodo): T[] {
+  return pedidos
+    .filter((p) => p.status === 'faturado' && dentroDoPeriodo(p.faturado_em, periodo))
+    .sort((a, b) => (b.faturado_em ?? '').localeCompare(a.faturado_em ?? ''))
 }
 
 export type LinhaCliente = { cliente_id: string | null; nome: string; total: number }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import type { Lancamento, Cliente } from '../../types'
+import type { Lancamento, Cliente, StatusPedido } from '../../types'
 import type { Periodo } from '../../lib/periodo'
-import { resumoPeriodo, despesasPorCategoria, emAbertoResumo, recebidoPorCliente } from './relatorios'
+import { resumoPeriodo, despesasPorCategoria, emAbertoResumo, recebidoPorCliente, realizados, pedidosFaturadosNoPeriodo } from './relatorios'
 
 const L = (o: Partial<Lancamento>): Lancamento =>
   ({
@@ -58,6 +58,32 @@ describe('emAbertoResumo (situação atual, independe do período)', () => {
     expect(r.aReceber).toBe(900)
     expect(r.itensPagar).toHaveLength(1)
     expect(r.itensReceber).toHaveLength(1)
+  })
+})
+
+describe('realizados (lista de entradas/saídas pagas no período)', () => {
+  it('filtra por tipo e pago_em no período, ordenado por pago_em', () => {
+    const lancs = [
+      L({ tipo: 'receita', valor: 100, pago_em: '2026-11-20' }),
+      L({ tipo: 'receita', valor: 50, pago_em: '2026-11-03' }),
+      L({ tipo: 'despesa', valor: 70, pago_em: '2026-11-04' }),
+      L({ tipo: 'receita', valor: 999, pago_em: '2026-10-01' }), // fora
+      L({ tipo: 'receita', valor: 999, pago_em: null }), // aberto
+    ]
+    const r = realizados(lancs, NOV, 'receita')
+    expect(r.map((l) => l.valor)).toEqual([50, 100])
+  })
+})
+
+describe('pedidosFaturadosNoPeriodo', () => {
+  it('só os faturados com faturado_em no período, mais recente primeiro', () => {
+    const peds: { id: string; status: StatusPedido; faturado_em: string | null; total: number }[] = [
+      { id: 'p1', status: 'faturado', faturado_em: '2026-11-05T10:00:00Z', total: 500 },
+      { id: 'p2', status: 'faturado', faturado_em: '2026-11-20T10:00:00Z', total: 800 },
+      { id: 'p3', status: 'aprovado', faturado_em: null, total: 300 }, // não faturado
+      { id: 'p4', status: 'faturado', faturado_em: '2026-10-01T10:00:00Z', total: 900 }, // fora
+    ]
+    expect(pedidosFaturadosNoPeriodo(peds, NOV).map((p) => p.id)).toEqual(['p2', 'p1'])
   })
 })
 
